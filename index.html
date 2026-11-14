@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER-MED // NASA-STD-3001 — HUD Biométrico de Tripulación</title>
+    <!-- Tipografías técnicas y legibles desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =====================================================================
+           VARIABLES Y RESET GENERAL
+           ===================================================================== */
+        :root {
+            --bg-desktop: #060b16;
+            --hud-glass: rgba(8, 17, 34, 0.78);
+            --hud-card: rgba(11, 24, 46, 0.72);
+            --hud-border-base: rgba(56, 189, 248, 0.25);
+
+            /* Semáforo clínico universal */
+            --status-normal: #10b981;
+            --status-normal-soft: rgba(16, 185, 129, 0.14);
+            --status-warn: #f59e0b;
+            --status-warn-soft: rgba(245, 158, 11, 0.15);
+            --status-crit: #ef4444;
+            --status-crit-soft: rgba(239, 68, 68, 0.16);
+            --accent-cyan: #00f0ff;
+
+            /* Tema dinámico del tripulante seleccionado */
+            --crew-accent: #10b981;
+            --crew-glow: rgba(16, 185, 129, 0.35);
+            --crew-soft: rgba(16, 185, 129, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-desktop);
+            color: #f1f5f9;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            position: relative;
+        }
+
+        /* =====================================================================
+           FONDO DE ESCRITORIO DE PC MODERNO OSCURO (WALLPAPER + ICONOS + BARRA)
+           ===================================================================== */
+        .pc-wallpaper {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(circle at 78% 22%, rgba(0, 240, 255, 0.13) 0%, transparent 42%),
+                radial-gradient(circle at 18% 82%, rgba(16, 185, 129, 0.11) 0%, transparent 45%),
+                radial-gradient(circle at 50% 45%, #0c1933 0%, #050914 75%, #02040a 100%);
+            overflow: hidden;
+        }
+
+        /* Malla poligonal / retícula sutil de fondo de escritorio */
+        .pc-wallpaper::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        /* Orbe orbital decorativo en el wallpaper */
+        .wallpaper-orbit {
+            position: absolute;
+            right: -120px;
+            top: -120px;
+            width: 560px;
+            height: 560px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 240, 255, 0.09);
+            box-shadow: inset 0 0 80px rgba(0, 240, 255, 0.05);
+            pointer-events: none;
+        }
+
+        /* Iconos laterales del escritorio PC */
+        .desktop-icons {
+            position: fixed;
+            top: 22px;
+            left: 18px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .desktop-icon {
+            width: 74px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.15s ease;
+            text-align: center;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .desktop-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+            color: #38bdf8;
+        }
+
+        .desktop-icon span {
+            font-size: 11px;
+            color: #cbd5e1;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+            line-height: 1.2;
+        }
+
+        /* =====================================================================
+           ÁREA DE TRABAJO Y PANEL PRINCIPAL HUD (GLASSMORPHISM)
+           ===================================================================== */
+        .desktop-workspace {
+            position: relative;
+            z-index: 10;
+            min-height: calc(100vh - 48px);
+            padding: 20px 24px 28px 108px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hud-window {
+            width: 100%;
+            max-width: 1320px;
+            background: var(--hud-glass);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1.5px solid var(--crew-accent);
+            box-shadow:
+                0 24px 60px rgba(0, 0, 0, 0.72),
+                0 0 28px var(--crew-glow),
+                inset 0 0 24px rgba(0, 240, 255, 0.04);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: border-color 0.35s ease, box-shadow 0.35s ease, opacity 0.28s ease, transform 0.28s ease;
+            position: relative;
+        }
+
+        .hud-window.minimized {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.94) translateY(24px);
+        }
+
+        /* Barra superior arrastrable de ventana HUD */
+        .hud-titlebar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(4, 10, 22, 0.85);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+            cursor: grab;
+        }
+
+        .hud-titlebar:active {
+            cursor: grabbing;
+        }
+
+        .hud-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pulse-beacon {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--crew-accent);
+            box-shadow: 0 0 12px var(--crew-accent);
+            animation: beaconPulse 1.6s infinite ease-in-out;
+        }
+
+        @keyframes beaconPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.35); opacity: 0.65; }
+        }
+
+        .hud-title-text h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-title-text h1 span.tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        .hud-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        /* Controles de simulación y ventana */
+        .hud-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-btn {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 11px;
+            border-radius: 9px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(15, 23, 42, 0.8);
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sim-btn:hover {
+            background: rgba(30, 41, 59, 0.95);
+            color: #ffffff;
+            border-color: rgba(148, 163, 184, 0.45);
+        }
+
+        .sim-btn.active-live {
+            border-color: rgba(0, 240, 255, 0.55);
+            background: rgba(0, 240, 255, 0.14);
+            color: #00f0ff;
+        }
+
+        .sim-btn.scenario-normal:hover { border-color: var(--status-normal); color: var(--status-normal); }
+        .sim-btn.scenario-eva:hover { border-color: var(--status-warn); color: var(--status-warn); }
+        .sim-btn.scenario-alert:hover { border-color: var(--status-crit); color: var(--status-crit); }
+
+        .win-btn {
+            padding: 6px 10px;
+            border-radius: 9px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(30, 41, 59, 0.7);
+            color: #e2e8f0;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .win-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
+
+        /* =====================================================================
+           CUERPO PRINCIPAL DEL HUD: SELECTOR TRIPULACIÓN + PANEL VITALES
+           ===================================================================== */
+        .hud-body {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 18px;
+            padding: 18px 20px;
+        }
+
+        /* Columna Izquierda: Selector de 4 Tripulantes */
+        .crew-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.1px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .crew-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .crew-card {
+            background: rgba(10, 20, 40, 0.72);
+            border: 1.5px solid rgba(148, 163, 184, 0.18);
+            border-radius: 14px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crew-card:hover {
+            background: rgba(15, 30, 58, 0.88);
+            border-color: rgba(56, 189, 248, 0.45);
+            transform: translateX(2px);
+        }
+
+        .crew-card.selected {
+            background: rgba(14, 31, 60, 0.95);
+            border-color: var(--crew-accent);
+            box-shadow: 0 0 18px var(--crew-glow);
+        }
+
+        .crew-card.selected::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--crew-accent);
+        }
+
+        .crew-card-top {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 9px;
+        }
+
+        .crew-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: #f8fafc;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.22), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            flex-shrink: 0;
+        }
+
+        .crew-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .crew-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f8fafc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .crew-role {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .status-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .pill-normal {
+            background: var(--status-normal-soft);
+            color: var(--status-normal);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .pill-warn {
+            background: var(--status-warn-soft);
+            color: var(--status-warn);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+        }
+
+        .pill-crit {
+            background: var(--status-crit-soft);
+            color: var(--status-crit);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            animation: alertBlink 1.4s infinite;
+        }
+
+        @keyframes alertBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.65; }
+        }
+
+        .crew-quick-vitals {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .crew-quick-vitals div span {
+            display: block;
+            font-size: 9px;
+            color: #64748b;
+        }
+
+        /* Caja de Soporte Vital del Traje / Cabina (PLSS) */
+        .plss-box {
+            margin-top: auto;
+            background: rgba(7, 15, 30, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .plss-row {
+            margin-top: 8px;
+        }
+
+        .plss-row-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .plss-bar {
+            height: 6px;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .plss-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
+        /* =====================================================================
+           COLUMNA DERECHA: PANEL DETALLADO DE LOS 5 SIGNOS VITALES
+           ===================================================================== */
+        .vitals-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Encabezado del Tripulante Activo + Resumen Clínico */
+        .clinical-summary-card {
+            background: linear-gradient(135deg, rgba(12, 26, 52, 0.88), rgba(8, 17, 34, 0.85));
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-left: 4px solid var(--crew-accent);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            transition: border-color 0.35s ease;
+        }
+
+        .active-crew-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .active-avatar-lg {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--crew-soft);
+            border: 1.5px solid var(--crew-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .active-crew-meta h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .active-crew-meta p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .clinical-diagnosis {
+            flex: 1;
+            min-width: 260px;
+            background: rgba(4, 10, 22, 0.65);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 11px;
+            padding: 10px 14px;
+        }
+
+        .clinical-diagnosis-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #38bdf8;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .clinical-diagnosis-text {
+            font-size: 13.5px;
+            line-height: 1.4;
+            color: #e2e8f0;
+        }
+
+        /* Cuadrícula de los 5 Signos Vitales */
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+        }
+
+        /* Las 2 tarjetas superiores ocupan 3 columnas cada una (50% / 50%) */
+        .vital-card-wide {
+            grid-column: span 3;
+        }
+
+        /* Las 3 tarjetas inferiores ocupan 2 columnas cada una (33.3% cada una) */
+        .vital-card-third {
+            grid-column: span 2;
+        }
+
+        .vital-card {
+            background: var(--hud-card);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 15px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .vital-card.state-normal {
+            border-color: rgba(16, 185, 129, 0.38);
+        }
+        .vital-card.state-warn {
+            border-color: rgba(245, 158, 11, 0.55);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.12);
+        }
+        .vital-card.state-crit {
+            border-color: rgba(239, 68, 68, 0.72);
+            box-shadow: 0 0 22px rgba(239, 68, 68, 0.18);
+        }
+
+        .vital-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .vital-title-group {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .vital-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            flex-shrink: 0;
+        }
+
+        .vital-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .vital-ref {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .vital-badge {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .badge-normal {
+            background: var(--status-normal-soft);
+            color: var(--status-normal);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .badge-warn {
+            background: var(--status-warn-soft);
+            color: var(--status-warn);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+        }
+        .badge-crit {
+            background: var(--status-crit-soft);
+            color: var(--status-crit);
+            border: 1px solid rgba(239, 68, 68, 0.55);
+        }
+
+        /* Lectura numérica principal grande y clara */
+        .vital-reading-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .vital-number-box {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .vital-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -1px;
+            color: #ffffff;
+        }
+
+        .vital-unit {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .vital-submetric {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.75);
+            padding: 4px 9px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        /* Canvas para ECG y Onda Respiratoria */
+        .wave-container {
+            width: 100%;
+            height: 54px;
+            background: rgba(4, 9, 20, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .wave-container canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Barra visual de rango clínico con zona normal resaltada y marcador */
+        .range-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .range-track {
+            position: relative;
+            height: 8px;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            overflow: visible;
+        }
+
+        .range-normal-zone {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background: rgba(16, 185, 129, 0.32);
+            border-left: 1px dashed rgba(16, 185, 129, 0.75);
+            border-right: 1px dashed rgba(16, 185, 129, 0.75);
+        }
+
+        .range-marker {
+            position: absolute;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--status-normal);
+            border: 2.5px solid #040914;
+            box-shadow: 0 0 10px currentColor;
+            transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease;
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        /* Barra segmentada de SpO2 */
+        .spo2-segments {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+            height: 10px;
+        }
+
+        .spo2-seg {
+            border-radius: 3px;
+            background: rgba(30, 41, 59, 0.85);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* =====================================================================
+           WIDGET FLOTANTE CONTRAÍDO (CUANDO EL PANEL PRINCIPAL SE MINIMIZA)
+           ===================================================================== */
+        .floating-dock-pill {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            z-index: 40;
+            background: rgba(8, 17, 34, 0.86);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1.5px solid var(--crew-accent);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 20px var(--crew-glow);
+            border-radius: 999px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .floating-dock-pill.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-14px);
+        }
+
+        .floating-dock-pill:hover {
+            transform: translateY(-2px);
+        }
+
+        /* =====================================================================
+           BARRA DE TAREAS INFERIOR DE ESCRITORIO PC
+           ===================================================================== */
+        .pc-taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            z-index: 50;
+            background: rgba(5, 10, 22, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .taskbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .start-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(0, 240, 255, 0.12);
+            border: 1px solid rgba(0, 240, 255, 0.35);
+            color: #00f0ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .start-btn:hover {
+            background: rgba(0, 240, 255, 0.22);
+        }
+
+        .taskbar-app-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(30, 41, 59, 0.75);
+            border-bottom: 2px solid var(--crew-accent);
+            color: #f8fafc;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .taskbar-app-btn:hover {
+            background: rgba(51, 65, 85, 0.85);
+        }
+
+        .taskbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        .taskbar-clock {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .taskbar-clock span {
+            display: block;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        /* =====================================================================
+           RESPONSIVIDAD PARA TABLET Y MÓVIL
+           ===================================================================== */
+        @media (max-width: 1080px) {
+            .hud-body {
+                grid-template-columns: 1fr;
+            }
+            .crew-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .desktop-icons {
+                display: none;
+            }
+            .desktop-workspace {
+                padding: 12px 12px 64px 12px;
+            }
+            .crew-list {
+                grid-template-columns: 1fr;
+            }
+            .vital-card-wide,
+            .vital-card-third {
+                grid-column: span 6;
+            }
+            .vital-value {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FONDO DE ESCRITORIO DE PC MODERNO OSCURO -->
+    <div class="pc-wallpaper">
+        <div class="wallpaper-orbit"></div>
+    </div>
+
+    <!-- ICONOS DE ESCRITORIO LATERALES -->
+    <div class="desktop-icons" aria-label="Accesos directos del escritorio">
+        <div class="desktop-icon" onclick="restoreHud()" title="Abrir Monitor Biométrico">
+            <div class="desktop-icon-box" style="color: #00f0ff; border-color: rgba(0,240,255,0.4);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+            </div>
+            <span>AETHER-MED HUD</span>
+        </div>
+        <div class="desktop-icon" onclick="applyScenario('normal')" title="Restablecer valores nominales">
+            <div class="desktop-icon-box" style="color: #10b981;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <span>Protocolo NASA-3001</span>
+        </div>
+        <div class="desktop-icon" onclick="applyScenario('eva')" title="Simular caminata espacial EVA">
+            <div class="desktop-icon-box" style="color: #f59e0b;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+            </div>
+            <span>Telemetría EVA-04</span>
+        </div>
+        <div class="desktop-icon" onclick="toggleLiveSimulation()" title="Activar o pausar telemetría en vivo">
+            <div class="desktop-icon-box" style="color: #a78bfa;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                    <line x1="8" y1="21" x2="16" y2="21"/>
+                    <line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+            </div>
+            <span>Consola Orbital</span>
+        </div>
+    </div>
+
+    <!-- PÍLDORA FLOTANTE CUANDO EL HUD PRINCIPAL SE CONTRAE -->
+    <div id="floating-dock-pill" class="floating-dock-pill hidden" onclick="restoreHud()" title="Clic para expandir el panel HUD completo">
+        <span class="pulse-beacon"></span>
+        <div style="font-size: 12.5px; font-weight: 700;" id="pill-crew-name">Cmdte. A. Chen</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #00f0ff;" id="pill-crew-hr">74 LPM</div>
+        <span class="status-pill pill-normal" id="pill-crew-status">NOMINAL</span>
+        <span style="font-size: 11px; color: #94a3b8;">⤢ Expandir</span>
+    </div>
+
+    <!-- ÁREA DE TRABAJO DEL ESCRITORIO CON EL PANEL HUD TRANSLÚCIDO -->
+    <main class="desktop-workspace">
+        <section id="hud-window" class="hud-window" aria-label="Interfaz Head-Up Display de Signos Vitales">
+
+            <!-- BARRA SUPERIOR DE VENTANA HUD (ARRASTRABLE) -->
+            <header id="hud-drag-handle" class="hud-titlebar">
+                <div class="hud-brand">
+                    <div class="pulse-beacon"></div>
+                    <div class="hud-title-text">
+                        <h1>AETHER-MED // MONITOR BIOMÉTRICO <span class="tag">NASA-STD-3001</span></h1>
+                        <div class="hud-subtitle" id="mission-timer">MISIÓN ARTEMIS IV • TIEMPO DE MISIÓN (MET): 04d 11h 32m 00s</div>
+                    </div>
+                </div>
+
+                <!-- Controles Interactivos de Simulación y Vista -->
+                <div class="hud-controls" onmousedown="event.stopPropagation()">
+                    <button id="btn-live-toggle" class="sim-btn active-live" onclick="toggleLiveSimulation()" title="Activa o detiene micro-variaciones fisiológicas en tiempo real">
+                        <span>●</span> En Vivo: ACTIVO
+                    </button>
+                    <button class="sim-btn scenario-normal" onclick="applyScenario('normal')" title="Simular estado de reposo normal en el tripulante activo">
+                        Reposo Nominal
+                    </button>
+                    <button class="sim-btn scenario-eva" onclick="applyScenario('eva')" title="Simular esfuerzo físico durante actividad extravehicular">
+                        Actividad EVA
+                    </button>
+                    <button class="sim-btn scenario-alert" onclick="applyScenario('alert')" title="Simular descompensación o estrés agudo">
+                        Estrés / Alerta
+                    </button>
+                    <button class="win-btn" onclick="resetWindowPosition()" title="Centrar ventana HUD en el escritorio">
+                        Centrar
+                    </button>
+                    <button class="win-btn" onclick="minimizeHud()" title="Contraer a widget flotante compacto">
+                        — Contraer
+                    </button>
+                </div>
+            </header>
+
+            <!-- CONTENIDO PRINCIPAL DIVIDIDO EN SELECTOR DE 4 TRIPULANTES + 5 SIGNOS VITALES -->
+            <div class="hud-body">
+
+                <!-- COLUMNA IZQUIERDA: SELECTOR DE 4 TRIPULANTES -->
+                <aside class="crew-sidebar">
+                    <div class="section-label">
+                        <span>Tripulación Activa (4)</span>
+                        <span style="color: #38bdf8;">SELECCIONAR</span>
+                    </div>
+
+                    <div id="crew-list" class="crew-list" role="listbox" aria-label="Seleccionar tripulante">
+                        <!-- Renderizado dinámicamente por JavaScript -->
+                    </div>
+
+                    <!-- Indicador de Soporte Vital del Traje / Módulo (PLSS) -->
+                    <div class="plss-box">
+                        <div class="section-label">
+                            <span>Soporte Vital Traje (PLSS)</span>
+                            <span id="plss-suit-id" style="color: #00f0ff;">EVA-01</span>
+                        </div>
+                        <div class="plss-row">
+                            <div class="plss-row-header">
+                                <span>Reserva Oxígeno (O₂)</span>
+                                <span id="plss-o2-val">94%</span>
+                            </div>
+                            <div class="plss-bar">
+                                <div id="plss-o2-bar" class="plss-fill" style="width: 94%; background: #10b981;"></div>
+                            </div>
+                        </div>
+                        <div class="plss-row">
+                            <div class="plss-row-header">
+                                <span>Refrigeración Líquida (H₂O)</span>
+                                <span id="plss-h2o-val">88%</span>
+                            </div>
+                            <div class="plss-bar">
+                                <div id="plss-h2o-bar" class="plss-fill" style="width: 88%; background: #38bdf8;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- COLUMNA DERECHA: LECTURA INDIVIDUAL DE LOS 5 SIGNOS VITALES -->
+                <div class="vitals-panel">
+
+                    <!-- Encabezado del Tripulante Seleccionado + Resumen Clínico Fácil de Interpretar -->
+                    <div class="clinical-summary-card">
+                        <div class="active-crew-header">
+                            <div class="active-avatar-lg" id="active-avatar">AC</div>
+                            <div class="active-crew-meta">
+                                <h2>
+                                    <span id="active-name">Cmdte. A. Chen</span>
+                                    <span id="active-overall-badge" class="status-pill pill-normal">ESTADO NOMINAL</span>
+                                </h2>
+                                <p id="active-role">Comandante de Misión • Edad: 38 años • Grupo: O+</p>
+                            </div>
+                        </div>
+
+                        <div class="clinical-diagnosis">
+                            <div class="clinical-diagnosis-title">Interpretación Rápida / Resumen Clínico</div>
+                            <div class="clinical-diagnosis-text" id="clinical-summary-text">
+                                Parámetros hemodinámicos y respiratorios dentro de rangos fisiológicos óptimos. Tripulante apto para operaciones nominales.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CUADRÍCULA DE LOS 5 SIGNOS VITALES -->
+                    <div class="vitals-grid">
+
+                        <!-- 1. FRECUENCIA CARDÍACA (FC) -->
+                        <article id="card-hr" class="vital-card vital-card-wide state-normal">
+                            <div class="vital-header">
+                                <div class="vital-title-group">
+                                    <div class="vital-icon" style="color: #f43f5e;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="vital-name">Frecuencia Cardíaca (FC)</div>
+                                        <div class="vital-ref">Rango Normal: 60 – 100 LPM</div>
+                                    </div>
+                                </div>
+                                <span id="badge-hr" class="vital-badge badge-normal">Normal</span>
+                            </div>
+
+                            <div class="vital-reading-row">
+                                <div class="vital-number-box">
+                                    <span id="val-hr" class="vital-value">74</span>
+                                    <span class="vital-unit">LPM (BPM)</span>
+                                </div>
+                                <div class="vital-submetric" id="sub-hr">Ritmo Sinusal Regular</div>
+                            </div>
+
+                            <!-- Onda ECG animada sincronizada a los LPM -->
+                            <div class="wave-container">
+                                <canvas id="ecg-canvas"></canvas>
+                            </div>
+
+                            <div class="range-wrapper">
+                                <div class="range-track">
+                                    <!-- Zona normal: 60 a 100 en escala 40..160 -> left: 16.6%, width: 33.3% -->
+                                    <div class="range-normal-zone" style="left: 16.6%; width: 33.3%;"></div>
+                                    <div id="marker-hr" class="range-marker" style="left: 28%;"></div>
+                                </div>
+                                <div class="range-labels">
+                                    <span>40 (Bradicardia)</span>
+                                    <span>60 — 100 (Normal)</span>
+                                    <span>160 LPM</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 2. FRECUENCIA RESPIRATORIA (FR) -->
+                        <article id="card-rr" class="vital-card vital-card-wide state-normal">
+                            <div class="vital-header">
+                                <div class="vital-title-group">
+                                    <div class="vital-icon" style="color: #38bdf8;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="vital-name">Frecuencia Respiratoria (FR)</div>
+                                        <div class="vital-ref">Rango Normal: 12 – 20 RPM</div>
+                                    </div>
+                                </div>
+                                <span id="badge-rr" class="vital-badge badge-normal">Eupnea / Normal</span>
+                            </div>
+
+                            <div class="vital-reading-row">
+                                <div class="vital-number-box">
+                                    <span id="val-rr" class="vital-value">15</span>
+                                    <span class="vital-unit">RPM (resp/min)</span>
+                                </div>
+                                <div class="vital-submetric" id="sub-rr">Ventilación Estable</div>
+                            </div>
+
+                            <!-- Onda Respiratoria animada suave -->
+                            <div class="wave-container">
+                                <canvas id="resp-canvas"></canvas>
+                            </div>
+
+                            <div class="range-wrapper">
+                                <div class="range-track">
+                                    <!-- Zona normal: 12 a 20 en escala 6..36 -> left: 20%, width: 26.6% -->
+                                    <div class="range-normal-zone" style="left: 20%; width: 26.6%;"></div>
+                                    <div id="marker-rr" class="range-marker" style="left: 30%;"></div>
+                                </div>
+                                <div class="range-labels">
+                                    <span>6 (Bradipnea)</span>
+                                    <span>12 — 20 (Normal)</span>
+                                    <span>36 RPM</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 3. TENSIÓN ARTERIAL (TA) -->
+                        <article id="card-bp" class="vital-card vital-card-third state-normal">
+                            <div class="vital-header">
+                                <div class="vital-title-group">
+                                    <div class="vital-icon" style="color: #a78bfa;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <circle cx="12" cy="12" r="9"/>
+                                            <path d="M12 7v5l3 3"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="vital-name">Tensión Arterial (TA)</div>
+                                        <div class="vital-ref">Normal: 90/60 – 120/80 mmHg</div>
+                                    </div>
+                                </div>
+                                <span id="badge-bp" class="vital-badge badge-normal">Óptima / Normal</span>
+                            </div>
+
+                            <div class="vital-reading-row">
+                                <div class="vital-number-box">
+                                    <span id="val-bp" class="vital-value" style="font-size: 31px;">118/76</span>
+                                    <span class="vital-unit">mmHg</span>
+                                </div>
+                            </div>
+
+                            <div class="vital-submetric" id="sub-bp" style="display: inline-block; width: fit-content;">
+                                PAM (Presión Media): 90 mmHg
+                            </div>
+
+                            <div class="range-wrapper">
+                                <div class="range-track">
+                                    <!-- Escala Sistólica 70..180, Normal 90..120 -> left: 18.2%, width: 27.3% -->
+                                    <div class="range-normal-zone" style="left: 18.2%; width: 27.3%;"></div>
+                                    <div id="marker-bp" class="range-marker" style="left: 43%;"></div>
+                                </div>
+                                <div class="range-labels">
+                                    <span>70 (Hipo)</span>
+                                    <span>90–120 Sis</span>
+                                    <span>180 mmHg</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 4. TEMPERATURA CORPORAL -->
+                        <article id="card-temp" class="vital-card vital-card-third state-normal">
+                            <div class="vital-header">
+                                <div class="vital-title-group">
+                                    <div class="vital-icon" style="color: #fb923c;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="vital-name">Temperatura</div>
+                                        <div class="vital-ref">Normal: 36.1 – 37.5 °C</div>
+                                    </div>
+                                </div>
+                                <span id="badge-temp" class="vital-badge badge-normal">Normotermia</span>
+                            </div>
+
+                            <div class="vital-reading-row">
+                                <div class="vital-number-box">
+                                    <span id="val-temp" class="vital-value">36.7</span>
+                                    <span class="vital-unit">°C</span>
+                                </div>
+                            </div>
+
+                            <div class="vital-submetric" id="sub-temp" style="display: inline-block; width: fit-content;">
+                                Equilibrio Térmico Central
+                            </div>
+
+                            <div class="range-wrapper">
+                                <div class="range-track">
+                                    <!-- Escala 35.0..40.0, Normal 36.1..37.5 -> left: 22%, width: 28% -->
+                                    <div class="range-normal-zone" style="left: 22%; width: 28%;"></div>
+                                    <div id="marker-temp" class="range-marker" style="left: 34%;"></div>
+                                </div>
+                                <div class="range-labels">
+                                    <span>35.0 °C</span>
+                                    <span>36.1–37.5 °C</span>
+                                    <span>40.0 °C</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 5. SATURACIÓN DE OXÍGENO (SpO2) -->
+                        <article id="card-spo2" class="vital-card vital-card-third state-normal">
+                            <div class="vital-header">
+                                <div class="vital-title-group">
+                                    <div class="vital-icon" style="color: #2dd4bf;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="vital-name">Saturación SpO₂</div>
+                                        <div class="vital-ref">Rango Normal: 95 – 100 %</div>
+                                    </div>
+                                </div>
+                                <span id="badge-spo2" class="vital-badge badge-normal">Oxigenación Óptima</span>
+                            </div>
+
+                            <div class="vital-reading-row">
+                                <div class="vital-number-box">
+                                    <span id="val-spo2" class="vital-value">98</span>
+                                    <span class="vital-unit">% SpO₂</span>
+                                </div>
+                            </div>
+
+                            <div class="vital-submetric" id="sub-spo2" style="display: inline-block; width: fit-content;">
+                                Perfusión Periférica: Óptima
+                            </div>
+
+                            <!-- Barra segmentada de 10 bloques para SpO2 -->
+                            <div class="range-wrapper">
+                                <div id="spo2-segments" class="spo2-segments">
+                                    <!-- 10 segmentos generados por JS -->
+                                </div>
+                                <div class="range-labels">
+                                    <span>&lt;90% Crítica</span>
+                                    <span>91–94% Leve</span>
+                                    <span>95–100% Óptima</span>
+                                </div>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- BARRA DE TAREAS INFERIOR DEL ESCRITORIO PC -->
+    <footer class="pc-taskbar">
+        <div class="taskbar-left">
+            <button class="start-btn" onclick="restoreHud()" title="Menú del Sistema Orbital">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="3" y="3" width="8" height="8" rx="1.5"/>
+                    <rect x="13" y="3" width="8" height="8" rx="1.5"/>
+                    <rect x="3" y="13" width="8" height="8" rx="1.5"/>
+                    <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+                </svg>
+                AETHER-OS
+            </button>
+            <button class="taskbar-app-btn" onclick="toggleHudVisibility()" title="Mostrar u ocultar el widget HUD de signos vitales">
+                <span style="color: #00f0ff;">●</span>
+                <span>HUD Signos Vitales — Tripulación (4)</span>
+            </button>
+        </div>
+
+        <div class="taskbar-right">
+            <div style="display: flex; align-items: center; gap: 6px; color: #10b981;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                    <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                    <line x1="12" y1="20" x2="12.01" y2="20"/>
+                </svg>
+                <span>TELEMETRÍA ENLAZADA</span>
+            </div>
+            <div class="taskbar-clock" id="pc-clock">
+                12:00:00
+                <span>14/11/2026</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- =====================================================================
+         LÓGICA JAVASCRIPT: GESTIÓN DE TRIPULANTES, INTERPRETACIÓN Y GRÁFICAS
+         ===================================================================== -->
+    <script>
+        // 1. BASE DE DATOS INICIAL DE LOS 4 TRIPULANTES
+        const crewMembers = [
+            {
+                id: 'chen',
+                initials: 'AC',
+                name: 'Cmdte. A. Chen',
+                role: 'Comandante de Misión • Módulo Orión',
+                age: 38,
+                bloodType: 'O+',
+                suitId: 'EVA-01',
+                o2Supply: 96,
+                h2oSupply: 91,
+                vitals: {
+                    hr: 74,       // Frecuencia Cardíaca (LPM)
+                    sys: 118,     // Tensión Sistólica (mmHg)
+                    dia: 76,      // Tensión Diastólica (mmHg)
+                    rr: 15,       // Frecuencia Respiratoria (RPM)
+                    temp: 36.7,   // Temperatura (°C)
+                    spo2: 98      // Saturación O2 (%)
+                }
+            },
+            {
+                id: 'lgarcia',
+                initials: 'LG',
+                name: 'Esp. L. García',
+                role: 'Especialista de Carga • Actividad EVA',
+                age: 34,
+                bloodType: 'A+',
+                suitId: 'EVA-02',
+                o2Supply: 78,
+                h2oSupply: 82,
+                vitals: {
+                    hr: 112,      // Elevada por esfuerzo físico en EVA
+                    sys: 134,     // Elevada leve
+                    dia: 84,
+                    rr: 22,       // Taquipnea leve por esfuerzo
+                    temp: 37.6,   // Febrícula leve por actividad
+                    spo2: 95      // Límite inferior normal
+                }
+            },
+            {
+                id: 'alexa',
+                initials: 'LA',
+                name: 'Dra. L. Alexa',
+                role: 'Oficial Médico y Biotecnología',
+                age: 36,
+                bloodType: 'B-',
+                suitId: 'CAB-03',
+                o2Supply: 99,
+                h2oSupply: 95,
+                vitals: {
+                    hr: 66,
+                    sys: 112,
+                    dia: 72,
+                    rr: 13,
+                    temp: 36.5,
+                    spo2: 99
+                }
+            },
+            {
+                id: 'hgarcia',
+                initials: 'HG',
+                name: 'Ing. H. García',
+                role: 'Ingeniero de Propulsión • Esclusa B',
+                age: 41,
+                bloodType: 'O-',
+                suitId: 'EVA-04',
+                o2Supply: 64,
+                h2oSupply: 71,
+                vitals: {
+                    hr: 136,      // Taquicardia marcada
+                    sys: 148,     // Hipertensión
+                    dia: 94,
+                    rr: 27,       // Taquipnea marcada
+                    temp: 38.2,   // Fiebre moderada
+                    spo2: 91      // Hipoxia leve
+                }
+            }
+        ];
+
+        // Estado global de la aplicación
+        let selectedCrewId = 'chen';
+        let isLiveMode = true;
+        let missionSeconds = (4 * 86400) + (11 * 3600) + (32 * 60);
+
+        // =====================================================================
+        // 2. FUNCIONES DE EVALUACIÓN E INTERPRETACIÓN CLÍNICA DE CADA SIGNO
+        // =====================================================================
+
+        function evaluateHeartRate(hr) {
+            if (hr < 50) return { level: 'crit', label: 'Bradicardia Severa', sub: 'Frecuencia muy baja' };
+            if (hr < 60) return { level: 'warn', label: 'Bradicardia Leve', sub: 'Por debajo de 60 LPM' };
+            if (hr <= 100) return { level: 'normal', label: 'Normal', sub: 'Ritmo Sinusal Regular' };
+            if (hr <= 125) return { level: 'warn', label: 'Elevada', sub: 'Esfuerzo o estrés leve' };
+            return { level: 'crit', label: 'Taquicardia', sub: 'Frecuencia cardíaca alta' };
+        }
+
+        function evaluateBloodPressure(sys, dia) {
+            const map = Math.round(dia + (sys - dia) / 3); // Presión Arterial Media (PAM)
+            if (sys < 90 || dia < 60) {
+                return { level: 'crit', label: 'Hipotensión', map, sub: `PAM: ${map} mmHg (Baja)` };
+            }
+            if (sys <= 120 && dia <= 80) {
+                return { level: 'normal', label: 'Óptima / Normal', map, sub: `PAM: ${map} mmHg (Estable)` };
+            }
+            if (sys <= 139 && dia <= 89) {
+                return { level: 'warn', label: 'Elevada', map, sub: `PAM: ${map} mmHg (Vigilar)` };
+            }
+            return { level: 'crit', label: 'Hipertensión', map, sub: `PAM: ${map} mmHg (Alta)` };
+        }
+
+        function evaluateRespiratoryRate(rr) {
+            if (rr < 10) return { level: 'crit', label: 'Bradipnea Severa', sub: 'Frecuencia muy lenta' };
+            if (rr < 12) return { level: 'warn', label: 'Bradipnea Leve', sub: 'Por debajo de 12 RPM' };
+            if (rr <= 20) return { level: 'normal', label: 'Eupnea / Normal', sub: 'Ventilación Estable' };
+            if (rr <= 24) return { level: 'warn', label: 'Taquipnea Leve', sub: 'Respiración acelerada' };
+            return { level: 'crit', label: 'Taquipnea', sub: 'Demanda ventilatoria alta' };
+        }
+
+        function evaluateTemperature(temp) {
+            if (temp < 35.5) return { level: 'crit', label: 'Hipotermia', sub: 'Descenso térmico crítico' };
+            if (temp < 36.1) return { level: 'warn', label: 'Temperatura Baja', sub: 'Enfriamiento leve' };
+            if (temp <= 37.5) return { level: 'normal', label: 'Normotermia', sub: 'Equilibrio Térmico Central' };
+            if (temp <= 38.0) return { level: 'warn', label: 'Febrícula', sub: 'Elevación térmica leve' };
+            return { level: 'crit', label: 'Fiebre', sub: 'Hipertermia / Revisar traje' };
+        }
+
+        function evaluateSpO2(spo2) {
+            if (spo2 >= 95) return { level: 'normal', label: 'Oxigenación Óptima', sub: 'Perfusión Periférica: Óptima' };
+            if (spo2 >= 91) return { level: 'warn', label: 'Hipoxia Leve', sub: 'Verificar flujo de O₂' };
+            return { level: 'crit', label: 'Hipoxia Crítica', sub: 'Requiere O₂ suplementario' };
+        }
+
+        // Calcula el estado general del tripulante combinando los 5 signos vitales
+        function evaluateOverallCrewStatus(vitals) {
+            const evals = [
+                evaluateHeartRate(vitals.hr),
+                evaluateBloodPressure(vitals.sys, vitals.dia),
+                evaluateRespiratoryRate(vitals.rr),
+                evaluateTemperature(vitals.temp),
+                evaluateSpO2(vitals.spo2)
+            ];
+
+            const critCount = evals.filter(e => e.level === 'crit').length;
+            const warnCount = evals.filter(e => e.level === 'warn').length;
+
+            if (critCount > 0) {
+                return {
+                    level: 'crit',
+                    pillClass: 'pill-crit',
+                    badgeText: 'ALERTA CLÍNICA',
+                    accent: '#ef4444',
+                    glow: 'rgba(239, 68, 68, 0.38)',
+                    soft: 'rgba(239, 68, 68, 0.14)'
+                };
+            }
+            if (warnCount > 0) {
+                return {
+                    level: 'warn',
+                    pillClass: 'pill-warn',
+                    badgeText: 'PRECAUCIÓN / EVA',
+                    accent: '#f59e0b',
+                    glow: 'rgba(245, 158, 11, 0.35)',
+                    soft: 'rgba(245, 158, 11, 0.14)'
+                };
+            }
+            return {
+                level: 'normal',
+                pillClass: 'pill-normal',
+                badgeText: 'ESTADO NOMINAL',
+                accent: '#10b981',
+                glow: 'rgba(16, 185, 129, 0.32)',
+                soft: 'rgba(16, 185, 129, 0.12)'
+            };
+        }
+
+        // Genera una frase clínica clara y accionable en español
+        function generateClinicalSummary(member) {
+            const v = member.vitals;
+            const hrE = evaluateHeartRate(v.hr);
+            const bpE = evaluateBloodPressure(v.sys, v.dia);
+            const rrE = evaluateRespiratoryRate(v.rr);
+            const tE = evaluateTemperature(v.temp);
+            const o2E = evaluateSpO2(v.spo2);
+
+            const issues = [];
+            if (hrE.level !== 'normal') issues.push(`${hrE.label.toLowerCase()} (${Math.round(v.hr)} LPM)`);
+            if (bpE.level !== 'normal') issues.push(`tensión ${bpE.label.toLowerCase()} (${Math.round(v.sys)}/${Math.round(v.dia)} mmHg)`);
+            if (rrE.level !== 'normal') issues.push(`${rrE.label.toLowerCase()} (${Math.round(v.rr)} RPM)`);
+            if (tE.level !== 'normal') issues.push(`${tE.label.toLowerCase()} (${v.temp.toFixed(1)} °C)`);
+            if (o2E.level !== 'normal') issues.push(`${o2E.label.toLowerCase()} (${Math.round(v.spo2)}%)`);
+
+            if (issues.length === 0) {
+                return `Todos los signos vitales de ${member.name} se encuentran dentro de los parámetros fisiológicos normales. Sin signos de fatiga ni hipoxia.`;
+            }
+
+            const overall = evaluateOverallCrewStatus(v);
+            if (overall.level === 'warn') {
+                return `Se observa ${issues.join(', ')}. Patrón compatible con esfuerzo físico moderado o actividad extravehicular; mantener monitoreo continuo.`;
+            }
+            return `ATENCIÓN: Se detecta ${issues.join(', ')}. Se recomienda reducir carga física, revisar regulación térmica y validar suministro de oxígeno del traje.`;
+        }
+
+        // =====================================================================
+        // 3. RENDERIZADO DE TARJETAS DE TRIPULACIÓN Y PANEL PRINCIPAL
+        // =====================================================================
+
+        function renderCrewSelector() {
+            const container = document.getElementById('crew-list');
+            container.innerHTML = '';
+
+            crewMembers.forEach(member => {
+                const status = evaluateOverallCrewStatus(member.vitals);
+                const isSelected = member.id === selectedCrewId;
+
+                const card = document.createElement('div');
+                card.className = `crew-card ${isSelected ? 'selected' : ''}`;
+                card.setAttribute('role', 'option');
+                card.setAttribute('aria-selected', isSelected);
+                card.onclick = () => selectCrewMember(member.id);
+
+                card.innerHTML = `
+                    <div class="crew-card-top">
+                        <div class="crew-avatar">${member.initials}</div>
+                        <div class="crew-info">
+                            <div class="crew-name">${member.name}</div>
+                            <div class="crew-role">${member.role.split('•')[0].trim()}</div>
+                        </div>
+                        <span class="status-pill ${status.pillClass}">${status.level === 'normal' ? 'NOMINAL' : status.level === 'warn' ? 'EVA / PREV' : 'ALERTA'}</span>
+                    </div>
+                    <div class="crew-quick-vitals">
+                        <div><span>FC</span>${Math.round(member.vitals.hr)} LPM</div>
+                        <div><span>TA</span>${Math.round(member.vitals.sys)}/${Math.round(member.vitals.dia)}</div>
+                        <div><span>SpO₂</span>${Math.round(member.vitals.spo2)}%</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateActiveCrewDashboard() {
+            const member = crewMembers.find(m => m.id === selectedCrewId);
+            if (!member) return;
+
+            const v = member.vitals;
+            const overall = evaluateOverallCrewStatus(v);
+
+            // Actualizar variables CSS globales para el borde neón del HUD
+            document.documentElement.style.setProperty('--crew-accent', overall.accent);
+            document.documentElement.style.setProperty('--crew-glow', overall.glow);
+            document.documentElement.style.setProperty('--crew-soft', overall.soft);
+
+            // Encabezado del tripulante activo
+            document.getElementById('active-avatar').textContent = member.initials;
+            document.getElementById('active-name').textContent = member.name;
+            document.getElementById('active-role').textContent = `${member.role} • Edad: ${member.age} años • Grupo: ${member.bloodType}`;
+
+            const overallBadge = document.getElementById('active-overall-badge');
+            overallBadge.className = `status-pill ${overall.pillClass}`;
+            overallBadge.textContent = overall.badgeText;
+
+            // Resumen clínico en lenguaje claro
+            document.getElementById('clinical-summary-text').textContent = generateClinicalSummary(member);
+
+            // Suministros PLSS del traje
+            document.getElementById('plss-suit-id').textContent = member.suitId;
+            document.getElementById('plss-o2-val').textContent = `${member.o2Supply}%`;
+            document.getElementById('plss-o2-bar').style.width = `${member.o2Supply}%`;
+            document.getElementById('plss-o2-bar').style.background = member.o2Supply < 70 ? '#f59e0b' : '#10b981';
+
+            document.getElementById('plss-h2o-val').textContent = `${member.h2oSupply}%`;
+            document.getElementById('plss-h2o-bar').style.width = `${member.h2oSupply}%`;
+
+            // Píldora flotante minimizada
+            document.getElementById('pill-crew-name').textContent = member.name;
+            document.getElementById('pill-crew-hr').textContent = `${Math.round(v.hr)} LPM`;
+            const pillStatus = document.getElementById('pill-crew-status');
+            pillStatus.className = `status-pill ${overall.pillClass}`;
+            pillStatus.textContent = overall.level === 'normal' ? 'NOMINAL' : overall.level === 'warn' ? 'PRECAUCIÓN' : 'ALERTA';
+
+            // --- 1. FRECUENCIA CARDÍACA ---
+            const hrEval = evaluateHeartRate(v.hr);
+            applyVitalCardStyle('hr', hrEval);
+            document.getElementById('val-hr').textContent = Math.round(v.hr);
+            document.getElementById('sub-hr').textContent = hrEval.sub;
+            const hrPct = clamp(((v.hr - 40) / (160 - 40)) * 100, 3, 97);
+            setRangeMarker('marker-hr', hrPct, hrEval.level);
+
+            // --- 2. FRECUENCIA RESPIRATORIA ---
+            const rrEval = evaluateRespiratoryRate(v.rr);
+            applyVitalCardStyle('rr', rrEval);
+            document.getElementById('val-rr').textContent = Math.round(v.rr);
+            document.getElementById('sub-rr').textContent = rrEval.sub;
+            const rrPct = clamp(((v.rr - 6) / (36 - 6)) * 100, 3, 97);
+            setRangeMarker('marker-rr', rrPct, rrEval.level);
+
+            // --- 3. TENSIÓN ARTERIAL ---
+            const bpEval = evaluateBloodPressure(v.sys, v.dia);
+            applyVitalCardStyle('bp', bpEval);
+            document.getElementById('val-bp').textContent = `${Math.round(v.sys)}/${Math.round(v.dia)}`;
+            document.getElementById('sub-bp').textContent = bpEval.sub;
+            const bpPct = clamp(((v.sys - 70) / (180 - 70)) * 100, 3, 97);
+            setRangeMarker('marker-bp', bpPct, bpEval.level);
+
+            // --- 4. TEMPERATURA CORPORAL ---
+            const tempEval = evaluateTemperature(v.temp);
+            applyVitalCardStyle('temp', tempEval);
+            document.getElementById('val-temp').textContent = v.temp.toFixed(1);
+            document.getElementById('sub-temp').textContent = tempEval.sub;
+            const tempPct = clamp(((v.temp - 35.0) / (40.0 - 35.0)) * 100, 3, 97);
+            setRangeMarker('marker-temp', tempPct, tempEval.level);
+
+            // --- 5. SATURACIÓN DE OXÍGENO (SpO2) ---
+            const spo2Eval = evaluateSpO2(v.spo2);
+            applyVitalCardStyle('spo2', spo2Eval);
+            document.getElementById('val-spo2').textContent = Math.round(v.spo2);
+            document.getElementById('sub-spo2').textContent = spo2Eval.sub;
+            renderSpo2Segments(Math.round(v.spo2), spo2Eval.level);
+        }
+
+        function applyVitalCardStyle(key, evaluation) {
+            const card = document.getElementById(`card-${key}`);
+            const badge = document.getElementById(`badge-${key}`);
+            card.className = card.className.replace(/state-(normal|warn|crit)/g, '').trim() + ` state-${evaluation.level}`;
+            badge.className = `vital-badge badge-${evaluation.level}`;
+            badge.textContent = evaluation.label;
+        }
+
+        function setRangeMarker(markerId, percent, level) {
+            const marker = document.getElementById(markerId);
+            marker.style.left = `${percent}%`;
+            const colorMap = {
+                normal: '#10b981',
+                warn: '#f59e0b',
+                crit: '#ef4444'
+            };
+            marker.style.backgroundColor = colorMap[level];
+            marker.style.color = colorMap[level];
+        }
+
+        function renderSpo2Segments(spo2Val, level) {
+            const container = document.getElementById('spo2-segments');
+            if (!container.children.length) {
+                for (let i = 0; i < 10; i++) {
+                    const seg = document.createElement('div');
+                    seg.className = 'spo2-seg';
+                    container.appendChild(seg);
+                }
+            }
+            // Mapeamos 85%..100% en 10 bloques
+            const activeBlocks = clamp(Math.round(((spo2Val - 84) / 16) * 10), 1, 10);
+            const activeColor = level === 'normal' ? '#10b981' : level === 'warn' ? '#f59e0b' : '#ef4444';
+
+            Array.from(container.children).forEach((seg, idx) => {
+                if (idx < activeBlocks) {
+                    seg.style.backgroundColor = activeColor;
+                    seg.style.boxShadow = `0 0 8px ${activeColor}66`;
+                } else {
+                    seg.style.backgroundColor = 'rgba(30, 41, 59, 0.85)';
+                    seg.style.boxShadow = 'none';
+                }
+            });
+        }
+
+        function clamp(val, min, max) {
+            return Math.min(Math.max(val, min), max);
+        }
+
+        // =====================================================================
+        // 4. INTERACCIÓN DEL USUARIO: SELECCIÓN Y SIMULACIÓN DE ESCENARIOS
+        // =====================================================================
+
+        function selectCrewMember(id) {
+            selectedCrewId = id;
+            renderCrewSelector();
+            updateActiveCrewDashboard();
+        }
+
+        function applyScenario(type) {
+            const member = crewMembers.find(m => m.id === selectedCrewId);
+            if (!member) return;
+
+            if (type === 'normal') {
+                member.vitals = { hr: 72, sys: 116, dia: 74, rr: 14, temp: 36.6, spo2: 99 };
+            } else if (type === 'eva') {
+                member.vitals = { hr: 114, sys: 132, dia: 84, rr: 22, temp: 37.6, spo2: 95 };
+            } else if (type === 'alert') {
+                member.vitals = { hr: 142, sys: 154, dia: 96, rr: 28, temp: 38.4, spo2: 90 };
+            }
+
+            renderCrewSelector();
+            updateActiveCrewDashboard();
+        }
+
+        function toggleLiveSimulation() {
+            isLiveMode = !isLiveMode;
+            const btn = document.getElementById('btn-live-toggle');
+            if (isLiveMode) {
+                btn.classList.add('active-live');
+                btn.innerHTML = '<span>●</span> En Vivo: ACTIVO';
+            } else {
+                btn.classList.remove('active-live');
+                btn.innerHTML = '<span>❚❚</span> En Vivo: PAUSA';
+            }
+        }
+
+        // Micro-variaciones fisiológicas realistas cada 1.8 segundos
+        setInterval(() => {
+            if (!isLiveMode) return;
+
+            crewMembers.forEach(member => {
+                const v = member.vitals;
+                v.hr = clamp(v.hr + (Math.random() - 0.48) * 2.2, 48, 155);
+                v.sys = clamp(v.sys + (Math.random() - 0.48) * 2.0, 85, 165);
+                v.dia = clamp(v.dia + (Math.random() - 0.48) * 1.4, 55, 105);
+                v.rr = clamp(v.rr + (Math.random() - 0.48) * 0.9, 9, 32);
+                v.temp = clamp(v.temp + (Math.random() - 0.48) * 0.06, 35.4, 39.2);
+                if (Math.random() > 0.65) {
+                    v.spo2 = clamp(v.spo2 + (Math.random() > 0.5 ? 1 : -1), 89, 100);
+                }
+            });
+
+            renderCrewSelector();
+            updateActiveCrewDashboard();
+        }, 1800);
+
+        // =====================================================================
+        // 5. ANIMACIÓN EN CANVAS: ONDA ECG Y ONDA RESPIRATORIA EN TIEMPO REAL
+        // =====================================================================
+
+        const ecgCanvas = document.getElementById('ecg-canvas');
+        const ecgCtx = ecgCanvas.getContext('2d');
+        const respCanvas = document.getElementById('resp-canvas');
+        const respCtx = respCanvas.getContext('2d');
+
+        let ecgPhase = 0;
+        let respPhase = 0;
+        const ecgHistory = [];
+        const respHistory = [];
+
+        function resizeCanvases() {
+            [ecgCanvas, respCanvas].forEach(canvas => {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * (window.devicePixelRatio || 1);
+                canvas.height = rect.height * (window.devicePixelRatio || 1);
+            });
+        }
+
+        // Forma de onda P-QRS-T realista
+        function getEcgSample(phase) {
+            const p = phase % 1;
+            if (p > 0.10 && p < 0.18) return Math.sin(((p - 0.10) / 0.08) * Math.PI) * 0.18; // Onda P
+            if (p >= 0.22 && p < 0.25) return -((p - 0.22) / 0.03) * 0.22; // Onda Q
+            if (p >= 0.25 && p < 0.29) return -0.22 + ((p - 0.25) / 0.04) * 1.17; // Pico R
+            if (p >= 0.29 && p < 0.33) return 0.95 - ((p - 0.29) / 0.04) * 1.25; // Onda S
+            if (p >= 0.33 && p < 0.36) return -0.30 + ((p - 0.33) / 0.03) * 0.30; // Retorno línea base
+            if (p > 0.48 && p < 0.64) return Math.sin(((p - 0.48) / 0.16) * Math.PI) * 0.28; // Onda T
+            return (Math.random() - 0.5) * 0.02;
+        }
+
+        let lastFrameTime = performance.now();
+
+        function animateWaveforms(now) {
+            const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
+            lastFrameTime = now;
+
+            const member = crewMembers.find(m => m.id === selectedCrewId) || crewMembers[0];
+            const hrHz = member.vitals.hr / 60; // Latidos por segundo
+            const rrHz = member.vitals.rr / 60; // Respiraciones por segundo
+
+            ecgPhase += dt * hrHz;
+            respPhase += dt * rrHz;
+
+            const hrEval = evaluateHeartRate(member.vitals.hr);
+            const rrEval = evaluateRespiratoryRate(member.vitals.rr);
+
+            const colorMap = { normal: '#10b981', warn: '#f59e0b', crit: '#ef4444' };
+
+            // Dibujar ECG
+            drawWave(ecgCanvas, ecgCtx, ecgHistory, getEcgSample(ecgPhase), colorMap[hrEval.level], 0.58);
+
+            // Dibujar Onda Respiratoria (curva sinusoidal suavizada)
+            const respSample = Math.sin(respPhase * Math.PI * 2) * 0.65 + Math.sin(respPhase * Math.PI * 4) * 0.12;
+            drawWave(respCanvas, respCtx, respHistory, respSample, colorMap[rrEval.level], 0.5);
+
+            requestAnimationFrame(animateWaveforms);
+        }
+
+        function drawWave(canvas, ctx, historyArray, newSample, strokeColor, baselineRatio) {
+            const w = canvas.width;
+            const h = canvas.height;
+            if (w === 0 || h === 0) return;
+
+            const maxPoints = Math.max(120, Math.floor(w / 3));
+            historyArray.push(newSample);
+            while (historyArray.length > maxPoints) {
+                historyArray.shift();
+            }
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Líneas guía sutiles
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.5);
+            ctx.lineTo(w, h * 0.5);
+            ctx.stroke();
+
+            // Trazo principal de la onda
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2.2 * (window.devicePixelRatio || 1);
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = strokeColor;
+            ctx.shadowBlur = 8;
+
+            ctx.beginPath();
+            const stepX = w / (maxPoints - 1);
+            for (let i = 0; i < historyArray.length; i++) {
+                const x = i * stepX;
+                const y = h * baselineRatio - historyArray[i] * (h * 0.42);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Punto luminoso en el extremo derecho
+            if (historyArray.length > 0) {
+                const lastX = (historyArray.length - 1) * stepX;
+                const lastY = h * baselineRatio - historyArray[historyArray.length - 1] * (h * 0.42);
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(lastX, lastY, 3 * (window.devicePixelRatio || 1), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // =====================================================================
+        // 6. VENTANA FLOTANTE ARRASTRABLE, MINIMIZAR Y RELOJ DE ESCRITORIO
+        // =====================================================================
+
+        const hudWindow = document.getElementById('hud-window');
+        const dragHandle = document.getElementById('hud-drag-handle');
+        const dockPill = document.getElementById('floating-dock-pill');
+
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let currentTranslateX = 0;
+        let currentTranslateY = 0;
+
+        dragHandle.addEventListener('mousedown', (e) => {
+            if (window.innerWidth <= 768) return;
+            isDragging = true;
+            dragStartX = e.clientX - currentTranslateX;
+            dragStartY = e.clientY - currentTranslateY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            currentTranslateX = e.clientX - dragStartX;
+            currentTranslateY = e.clientY - dragStartY;
+            hudWindow.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px)`;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        function resetWindowPosition() {
+            currentTranslateX = 0;
+            currentTranslateY = 0;
+            hudWindow.style.transform = 'translate(0px, 0px)';
+        }
+
+        function minimizeHud() {
+            hudWindow.classList.add('minimized');
+            dockPill.classList.remove('hidden');
+        }
+
+        function restoreHud() {
+            hudWindow.classList.remove('minimized');
+            dockPill.classList.add('hidden');
+            setTimeout(resizeCanvases, 50);
+        }
+
+        function toggleHudVisibility() {
+            if (hudWindow.classList.contains('minimized')) {
+                restoreHud();
+            } else {
+                minimizeHud();
+            }
+        }
+
+        // Reloj de la barra de tareas del PC y contador MET de misión
+        function updateClocks() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('pc-clock').innerHTML = `${timeStr}<span>${dateStr}</span>`;
+
+            missionSeconds++;
+            const d = String(Math.floor(missionSeconds / 86400)).padStart(2, '0');
+            const h = String(Math.floor((missionSeconds % 86400) / 3600)).padStart(2, '0');
+            const m = String(Math.floor((missionSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(missionSeconds % 60).padStart(2, '0');
+            document.getElementById('mission-timer').textContent = `MISIÓN ARTEMIS IV • TIEMPO DE MISIÓN (MET): ${d}d ${h}h ${m}m ${s}s`;
+        }
+
+        // Inicialización al cargar la página
+        window.addEventListener('resize', resizeCanvases);
+        window.onload = () => {
+            renderCrewSelector();
+            updateActiveCrewDashboard();
+            resizeCanvases();
+            updateClocks();
+            setInterval(updateClocks, 1000);
+            requestAnimationFrame(animateWaveforms);
+        };
+    </script>
+</body>
+</html>
