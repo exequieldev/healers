@@ -1,4 +1,4 @@
-// Anatomía en capas — código fuente del visor (módulo ES).
+// Código fuente del visor anatómico (módulo ES).
 // Se empaqueta en app.js con:  npm install && npm run build
 // Datos: window.ANAT_DATA (data/anatomia.js) y window.ANAT_MODELS (models/*.js).
 import * as THREE from 'three';
@@ -190,7 +190,6 @@ function localize(){
 }
 function applyStatic(){
   document.documentElement.lang = lang;
-  document.title = t('title');
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
   document.querySelectorAll('[data-i18n-attr]').forEach(el => el.dataset.i18nAttr.split(';').forEach(p => { const [a, k] = p.split(':'); el.setAttribute(a, t(k)); }));

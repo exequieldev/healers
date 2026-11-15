@@ -1,6 +1,6 @@
 {
-  "name": "Anatomía en capas",
-  "short_name": "Anatomía",
+  "name": "Anatomy viewer",
+  "short_name": "Viewer",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#252525",

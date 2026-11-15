@@ -1,8 +1,8 @@
 {
-  "name": "anatomia-humana-en-capas",
+  "name": "visor-anatomico",
   "version": "1.0.0",
   "private": true,
-  "description": "Atlas 3D interactivo del cuerpo humano (BodyParts3D) con capas y fichas en español.",
+  "description": "Visor anatómico interactivo de estudio en español e inglés.",
   "license": "MIT",
   "scripts": {
     "build": "esbuild src/visor.js --bundle --format=iife --target=es2020 --banner:js=\"/* Archivo generado desde src/visor.js con esbuild: no editar a mano. Incluye three.js (MIT). */\" --outfile=app.js"

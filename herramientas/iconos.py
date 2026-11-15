@@ -1,11 +1,11 @@
-"""Genera los iconos y la imagen para compartir en estilo pixel art (la línea visual de alexisparron.com).
+"""Genera los iconos del visor en estilo pixel art.
 Uso (desde esta carpeta):  python3 iconos.py ..
-Salida en la carpeta indicada: favicon.svg, favicon.ico, apple-touch-icon.png, icon-192.png, icon-512.png, og-image.png.
+Salida en la carpeta indicada: favicon.svg, favicon.ico, apple-touch-icon.png, icon-192.png, icon-512.png.
 Dependencia: Pillow."""
 import struct, sys, io
 from PIL import Image, ImageDraw
 
-BG, PAPER, YELLOW, GREY = '#252525', '#f5f3ee', '#f2ca50', '#b9b6ae'
+BG, PAPER, YELLOW = '#252525', '#f5f3ee', '#f2ca50'
 # Figura 5×5: Y = amarillo (cabeza y órgano), W = papel
 FIGURE = ['..Y..',
           'WWWWW',
@@ -57,44 +57,10 @@ def svg():
             '<g fill="%s"><path d="%s"/></g><g fill="%s"><path d="%s"/></g></svg>\n'
             % (BG, PAPER, ''.join(cells['W']), YELLOW, ''.join(cells['Y'])))
 
-# Fuente pixel 5×7 mínima (solo lo necesario para la imagen para compartir)
-G = {
-'A':['.###.','#...#','#...#','#####','#...#','#...#','#...#'], 'B':['####.','#...#','#...#','####.','#...#','#...#','####.'],
-'C':['.####','#....','#....','#....','#....','#....','.####'], 'D':['####.','#...#','#...#','#...#','#...#','#...#','####.'],
-'E':['#####','#....','#....','####.','#....','#....','#####'], 'G':['.####','#....','#....','#.###','#...#','#...#','.####'],
-'H':['#...#','#...#','#...#','#####','#...#','#...#','#...#'], 'I':['#####','..#..','..#..','..#..','..#..','..#..','#####'],
-'L':['#....','#....','#....','#....','#....','#....','#####'], 'M':['#...#','##.##','#.#.#','#.#.#','#...#','#...#','#...#'],
-'N':['#...#','##..#','#.#.#','#..##','#...#','#...#','#...#'], 'O':['.###.','#...#','#...#','#...#','#...#','#...#','.###.'],
-'P':['####.','#...#','#...#','####.','#....','#....','#....'], 'R':['####.','#...#','#...#','####.','#.#..','#..#.','#...#'],
-'S':['.####','#....','#....','.###.','....#','....#','####.'], 'T':['#####','..#..','..#..','..#..','..#..','..#..','..#..'],
-'U':['#...#','#...#','#...#','#...#','#...#','#...#','.###.'], 'X':['#...#','#...#','.#.#.','..#..','.#.#.','#...#','#...#'],
-'Y':['#...#','#...#','.#.#.','..#..','..#..','..#..','..#..'], 'W':['#...#','#...#','#...#','#.#.#','#.#.#','##.##','#...#'],
-'3':['####.','....#','....#','.###.','....#','....#','####.'], '.':['.....','.....','.....','.....','.....','.....','..#..'],
-'-':['.....','.....','.....','.###.','.....','.....','.....'], ' ':['.....']*7,
-}
-
-def text(d, s, x, y, scale, color):
-    for ch in s:
-        for r, row in enumerate(G[ch]):
-            for k, v in enumerate(row):
-                if v == '#': d.rectangle([x + k * scale, y + r * scale, x + (k + 1) * scale - 1, y + (r + 1) * scale - 1], fill=color)
-        x += 6 * scale
-
-def og():
-    im = Image.new('RGB', (1200, 630), BG); d = ImageDraw.Draw(im)
-    text(d, 'ATLAS 3D DEL CUERPO HUMANO', 90, 120, 4, YELLOW)
-    text(d, 'ANATOMIA', 90, 190, 12, PAPER)
-    text(d, 'EN CAPAS', 90, 310, 12, PAPER)
-    text(d, 'LAYERED HUMAN ANATOMY', 90, 460, 4, GREY)
-    text(d, 'ANATOMIA.ALEXISPARRON.COM', 90, 510, 4, GREY)
-    figure(d, 48, 24, 774, 147)
-    return im
-
 if __name__ == '__main__':
     out = (sys.argv[1] if len(sys.argv) > 1 else '..').rstrip('/') + '/'
     open(out + 'favicon.svg', 'w').write(svg())
     open(out + 'favicon.ico', 'wb').write(ico([16, 32, 48]))
     for name, s in [('apple-touch-icon.png', 180), ('icon-192.png', 192), ('icon-512.png', 512)]:
         open(out + name, 'wb').write(png_bytes(icon(s)))
-    open(out + 'og-image.png', 'wb').write(png_bytes(og()))
     print('Generados en', out)

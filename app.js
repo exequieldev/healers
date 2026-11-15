@@ -34838,8 +34838,6 @@ void main() {
   }
   var STR = {
     es: {
-      title: "Anatom\xEDa en capas",
-      metaDesc: "Atlas 3D interactivo del cuerpo humano con 934 estructuras anat\xF3micas en capas, fichas y b\xFAsqueda. Disponible en espa\xF1ol e ingl\xE9s. Uso educativo.",
       langLabel: "Idioma",
       views: "Vistas",
       front: "Anterior",
@@ -34889,8 +34887,6 @@ void main() {
       dimRest: "Atenuar el resto del cuerpo"
     },
     en: {
-      title: "Layered Anatomy",
-      metaDesc: "Interactive 3D atlas of the human body with 934 anatomical structures in layers, cards and search. Available in Spanish and English. Educational use.",
       langLabel: "Language",
       views: "Views",
       front: "Anterior",
@@ -35209,7 +35205,6 @@ void main() {
   }
   function applyStatic() {
     document.documentElement.lang = lang;
-    document.title = t("title");
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = t(el.dataset.i18n);
     });

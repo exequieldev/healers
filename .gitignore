@@ -10,7 +10,7 @@ herramientas/fidsys.json
 __pycache__/
 
 # Ficheros locales que no son del proyecto
-anatomia-humana-en-capas.zip
+visor-anatomico.zip
 CLAUDE.md
 
 # Secretos y credenciales

@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://anatomia.alexisparron.com/sitemap.xml
