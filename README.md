@@ -13,6 +13,8 @@ Interactive 3D atlas of the human body for educational use. It includes 934 anat
 1. Clone the repository, or download it as a zip and unpack it.
 2. Open `index.html` in any modern browser (Chrome, Firefox, Edge, Safari).
 
+The **Active Crew** section lets you select a crew member by mouse or keyboard; on small screens, it appears in the Model tab.
+
 It works offline and needs no installation. Fonts are bundled in `fonts/` (Newsreader and IBM Plex, SIL OFL 1.1), so no external server is contacted.
 
 To modify the viewer, edit `src/visor.js` and regenerate `app.js`:

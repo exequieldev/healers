@@ -210,6 +210,79 @@ async function setLang(l){
   if ($('#q').value) $('#q').dispatchEvent(new Event('input'));
 }
 $('#lang').addEventListener('click', () => setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]));
+
+const CREW = [
+  {initials:'AC', name:'A. CHEN', activity:'En cabina // Módulo Harmony', status:'NORMAL', statusType:'normal', heartRate:'72 BPM', spo2:'98 %', temp:'36.8 °C'},
+  {initials:'LG', name:'L. GARCÍA', activity:'Post-EVA // Esclusa Quest', status:'AMARILLO / PRECAUCIÓN', statusType:'caution', heartRate:'98 BPM', spo2:'96 %', temp:'37.1 °C'},
+  {initials:'LA', name:'L. ALEXA', activity:'Sin camiseta Bio-Monitor', status:'AMARILLO (SENSOR ***)', statusType:'caution', heartRate:'***', spo2:'97 %', temp:'36.7 °C'},
+  {initials:'HG', name:'H. GARCÍA', activity:'Turno nocturno // Fatiga leve', status:'AMARILLO / PRECAUCIÓN', statusType:'caution', heartRate:'66 BPM', spo2:'99 %', temp:'36.5 °C'},
+];
+let activeCrew = 'AC';
+function renderCrew(){
+  const list = $('#crew-list');
+  CREW.forEach(member => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'crew-card';
+    card.dataset.status = member.statusType;
+    card.setAttribute('aria-pressed', String(member.initials === activeCrew));
+
+    const top = document.createElement('span');
+    top.className = 'crew-top';
+    const avatar = document.createElement('span');
+    avatar.className = 'crew-avatar';
+    avatar.textContent = member.initials;
+    const person = document.createElement('span');
+    person.className = 'crew-person';
+    const name = document.createElement('span');
+    name.className = 'crew-name';
+    name.textContent = member.name;
+    const activity = document.createElement('span');
+    activity.className = 'crew-activity';
+    activity.textContent = member.activity;
+    person.append(name, activity);
+    const badge = document.createElement('span');
+    badge.className = 'crew-active';
+    badge.textContent = 'ACTIVO';
+    badge.hidden = member.initials !== activeCrew;
+    top.append(avatar, person, badge);
+
+    const status = document.createElement('span');
+    status.className = 'crew-status';
+    status.innerHTML = member.statusType === 'normal'
+      ? '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="m5 8 2 2 4-4"/></svg>'
+      : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5 15 14H1z"/><path d="M8 5.5v4M8 12v.1"/></svg>';
+    const statusText = document.createElement('span');
+    statusText.textContent = member.status;
+    status.append(statusText);
+
+    const metrics = document.createElement('span');
+    metrics.className = 'crew-metrics';
+    [['FC', member.heartRate], ['SpO₂', member.spo2], ['TEMP', member.temp]].forEach(([label, value]) => {
+      const metric = document.createElement('span');
+      const metricLabel = document.createElement('span');
+      metricLabel.className = 'crew-metric-label';
+      metricLabel.textContent = label;
+      const metricValue = document.createElement('span');
+      metricValue.className = 'crew-metric-value';
+      metricValue.textContent = value;
+      metric.append(metricLabel, metricValue);
+      metrics.append(metric);
+    });
+
+    card.append(top, status, metrics);
+    card.addEventListener('click', () => {
+      activeCrew = member.initials;
+      list.querySelectorAll('.crew-card').forEach(button => {
+        const selected = button === card;
+        button.setAttribute('aria-pressed', String(selected));
+        button.querySelector('.crew-active').hidden = !selected;
+      });
+    });
+    list.append(card);
+  });
+}
+renderCrew();
 const CHEV = '<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>';
 function buildSystemsUI(){
   const box = $('#systems'); box.innerHTML = '';
@@ -419,6 +492,7 @@ addEventListener('keydown', e => {
 // ---------------------------------------------------------------- pestañas móvil
 function setFilterPanel(open){
   $('#left').classList.toggle('show', open);
+  $('#crew').hidden = open;
   const label = t(open ? 'hideFilters' : 'showFilters');
   const button = $('#filters-toggle');
   button.setAttribute('aria-expanded', String(open));
@@ -429,6 +503,7 @@ function showTab(t){
   if (innerWidth > 900) return;
   setFilterPanel(t === 'left');
   $('#right').classList.toggle('show', t === 'right');
+  if (t === 'right') $('#crew').hidden = true;
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
   fitView();
 }

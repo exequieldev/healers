@@ -13,6 +13,8 @@ Atlas 3D interactivo del cuerpo humano para uso educativo. Incluye 934 estructur
 1. Clona el repositorio o descárgalo como zip y descomprímelo.
 2. Abre `index.html` con doble clic en cualquier navegador moderno (Chrome, Firefox, Edge, Safari).
 
+La sección **Tripulación activa** permite seleccionar un tripulante con ratón o teclado; en pantallas pequeñas, se muestra en la pestaña Modelo.
+
 Funciona sin conexión y sin instalar nada. Las tipografías van incluidas en `fonts/` (Newsreader e IBM Plex, licencia SIL OFL 1.1), así que no se contacta con ningún servidor externo.
 
 Para modificar el visor, edita `src/visor.js` y regenera `app.js`:
