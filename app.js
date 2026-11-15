@@ -35416,6 +35416,17 @@ void main() {
     vitals.replaceChildren(...TELEMETRY_VITALS.map((definition) => createTelemetryCard(definition.labelKey, metrics.get(definition.id), definition.unit)));
     const cabin = $("#telemetry-environment");
     cabin.replaceChildren(...CABIN_TELEMETRY.map((reading) => createTelemetryCard(reading.labelKey, null, reading.unit)));
+    positionTelemetryInfo();
+  }
+  function positionTelemetryInfo() {
+    if (innerWidth > 900) {
+      const telemetry = $("#telemetry");
+      if (telemetry.classList.contains("show")) {
+        $("#right").style.top = `${Math.ceil(telemetry.getBoundingClientRect().bottom + 12)}px`;
+      }
+    } else {
+      $("#right").style.removeProperty("top");
+    }
   }
   function renderCrew() {
     const list = $("#crew-list");
@@ -35870,6 +35881,7 @@ void main() {
     $("#telemetry").classList.toggle("show", t2 === "telemetry");
     if (t2 === "right" || t2 === "telemetry") $("#crew").hidden = true;
     document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tab === t2)));
+    positionTelemetryInfo();
     fitView();
   }
   function fitView() {
@@ -35900,6 +35912,7 @@ void main() {
       $("#right").classList.add("show");
       $("#telemetry").classList.add("show");
       $("#crew").hidden = false;
+      positionTelemetryInfo();
     } else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab("none");
     else showTab(document.querySelector('[data-tab][aria-pressed="true"]').dataset.tab);
   }

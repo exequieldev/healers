@@ -314,6 +314,17 @@ function renderTelemetry(){
   const cabin = $('#telemetry-environment');
   cabin.replaceChildren(...CABIN_TELEMETRY.map(reading =>
     createTelemetryCard(reading.labelKey, null, reading.unit)));
+  positionTelemetryInfo();
+}
+function positionTelemetryInfo(){
+  if (innerWidth > 900){
+    const telemetry = $('#telemetry');
+    if (telemetry.classList.contains('show')){
+      $('#right').style.top = `${Math.ceil(telemetry.getBoundingClientRect().bottom + 12)}px`;
+    }
+  } else {
+    $('#right').style.removeProperty('top');
+  }
 }
 function renderCrew(){
   const list = $('#crew-list');
@@ -634,6 +645,7 @@ function showTab(t){
   $('#telemetry').classList.toggle('show', t === 'telemetry');
   if (t === 'right' || t === 'telemetry') $('#crew').hidden = true;
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
+  positionTelemetryInfo();
   fitView();
 }
 // en móvil, encaja el cuerpo en la zona libre entre la cabecera y el panel inferior
@@ -656,7 +668,7 @@ $('#filters-toggle').addEventListener('click', () => {
   if (innerWidth <= 900) fitView();
 });
 function layout(){
-  if (innerWidth > 900){ $('#right').classList.add('show'); $('#telemetry').classList.add('show'); $('#crew').hidden = false; }
+  if (innerWidth > 900){ $('#right').classList.add('show'); $('#telemetry').classList.add('show'); $('#crew').hidden = false; positionTelemetryInfo(); }
   else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab('none');
   else showTab(document.querySelector('[data-tab][aria-pressed="true"]').dataset.tab);
 }

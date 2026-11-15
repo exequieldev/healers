@@ -42,26 +42,27 @@ button{font:inherit;color:inherit}
 .panel{position:fixed;top:92px;bottom:16px;width:330px;background:var(--panel);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;flex-direction:column;z-index:4;overflow:hidden}
 .panel:not(.show){display:none}
 #left{left:16px}
-#right{top:434px;right:16px;width:360px}
-#telemetry{top:92px;right:16px;width:360px;height:330px;box-sizing:border-box;padding:10px;gap:8px}
-.telemetry-header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:20px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+#right{top:320px;right:16px;width:360px}
+#telemetry{top:92px;right:16px;bottom:auto;width:min(540px,calc(100vw - 366px));height:auto;box-sizing:border-box;padding:10px;gap:8px;background:transparent;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none;overflow:visible}
+.telemetry-header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:20px}
 .telemetry-title{display:flex;align-items:center;gap:6px;color:var(--mut);font:600 9px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .telemetry-title svg{width:12px;height:12px;color:#00d66b;flex:none}
 .telemetry-subject{color:var(--acc);font:500 9px var(--mono);text-align:right;white-space:nowrap}
 .telemetry-section{display:flex;flex-direction:column;gap:5px;min-height:0}
 .telemetry-section h3{margin:0;color:var(--mut);font:600 8.5px/1.2 var(--sans);letter-spacing:.03em;text-transform:uppercase}
 .telemetry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
-.telemetry-card{display:flex;min-width:0;min-height:56px;box-sizing:border-box;flex-direction:column;justify-content:space-between;gap:4px;padding:6px;background:#090e13;border:1px solid #293541;border-radius:6px}
-.telemetry-label{color:var(--mut);font:8px/1.15 var(--sans)}
-.telemetry-value{display:flex;align-items:baseline;gap:4px;color:var(--tx);font:600 18px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.telemetry-card{display:flex;min-width:0;box-sizing:border-box;flex-direction:column;justify-content:flex-start;gap:1px;padding:3px 5px;background:#090e13;border:1px solid #293541;border-radius:6px}
+.telemetry-label{color:var(--mut);font:7.5px/1 var(--sans)}
+.telemetry-value{display:flex;align-items:baseline;gap:4px;color:var(--tx);font:600 16px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .telemetry-value.stale{color:var(--caution)}
 .telemetry-value.unavailable{color:var(--mut)}
-.telemetry-unit{color:var(--mut);font:9px var(--mono)}
-.telemetry-note{color:var(--mut);font:7px/1.15 var(--mono);overflow-wrap:anywhere}
+.telemetry-unit{color:var(--mut);font:8px var(--mono)}
+.telemetry-note{color:var(--mut);font:6.5px/1.05 var(--mono);overflow-wrap:anywhere}
 .telemetry-note.stale{color:var(--caution)}
+#telemetry-vitals{grid-template-columns:repeat(5,minmax(0,1fr))}
 #telemetry-environment{grid-template-columns:repeat(5,minmax(0,1fr))}
-#telemetry-environment .telemetry-card{min-height:54px;padding:5px 3px;text-align:center}
-#telemetry-environment .telemetry-label{font-size:7px}
+#telemetry-environment .telemetry-card{min-height:0;padding:3px 2px;text-align:center}
+#telemetry-environment .telemetry-label{font-size:7.5px}
 #telemetry-environment .telemetry-value{justify-content:center;gap:2px;font-size:14px}
 #telemetry-environment .telemetry-unit{font-size:7px}
 #telemetry-environment .telemetry-note{font-size:6.5px}
@@ -188,14 +189,15 @@ dl.facts dd{margin:0;font-size:13px;color:var(--tx)}
   .panel{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 56px);left:10px!important;right:10px!important;width:auto!important;max-height:44vh;border-radius:14px}
   #right{top:auto}
   #telemetry{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 56px);left:10px!important;right:10px!important;width:auto!important;height:auto;max-height:55vh;padding:8px;gap:7px;overflow-y:auto}
+  #telemetry-vitals{grid-template-columns:repeat(3,minmax(0,1fr))}
   .telemetry-header{min-height:18px;padding-bottom:4px}
   .telemetry-title{font-size:8px}
   .telemetry-subject{font-size:8px}
   .telemetry-grid{gap:4px}
-  .telemetry-card{min-height:52px;padding:5px}
+  .telemetry-card{padding:3px}
   .telemetry-value{font-size:16px}
-  #telemetry-environment .telemetry-card{min-height:48px;padding:4px 2px}
-  #telemetry-environment .telemetry-label{font-size:6.5px}
+  #telemetry-environment .telemetry-card{min-height:0;padding:2px 1px}
+  #telemetry-environment .telemetry-label{font-size:7px}
   #crew{top:calc(env(safe-area-inset-top,0px) + 78px);bottom:calc(env(safe-area-inset-bottom,0px) + 56px);left:10px;width:calc(100% - 20px)}
   .crew-list{gap:4px}
   .crew-card{padding:3px 7px 2px}
