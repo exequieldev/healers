@@ -34824,7 +34824,6 @@ void main() {
 
   // src/i18n.js
   var LANGS = ["es", "en"];
-  var LANG_NAMES = { es: "Espa\xF1ol", en: "English" };
   function detectLang() {
     const q = new URLSearchParams(location.search).get("lang");
     if (LANGS.includes(q)) return q;
@@ -34833,12 +34832,13 @@ void main() {
       if (LANGS.includes(s)) return s;
     } catch (e) {
     }
-    const nav = (navigator.languages || [navigator.language || "es"]).map((l) => l.slice(0, 2).toLowerCase());
-    return nav.find((l) => LANGS.includes(l)) || "en";
+    return "en";
   }
   var STR = {
     es: {
       langLabel: "Idioma",
+      switchToEnglish: "Cambiar a ingl\xE9s",
+      switchToSpanish: "Cambiar a espa\xF1ol",
       crewTitle: "Tripulaci\xF3n",
       crewSelect: "Seleccionar tripulante",
       crewSelectHint: "ELEGIR",
@@ -34938,6 +34938,8 @@ void main() {
     },
     en: {
       langLabel: "Language",
+      switchToEnglish: "Switch to English",
+      switchToSpanish: "Switch to Spanish",
       crewTitle: "Crew",
       crewSelect: "Select crew member",
       crewSelectHint: "SELECT",
@@ -34959,11 +34961,11 @@ void main() {
       biometricsHeading: "Vital signs \xB7 Bio-monitor",
       notAvailable: "Unavailable",
       views: "Views",
-      front: "Anterior",
-      back: "Posterior",
+      front: "Front",
+      back: "Back",
       right: "Right lateral",
       left: "Left lateral",
-      top: "Superior",
+      top: "Top",
       spin: "Rotate",
       reset: "Reset",
       showFilters: "Show filters",
@@ -35525,7 +35527,7 @@ void main() {
     }));
     const next = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
     $("#lang").textContent = next.toUpperCase();
-    $("#lang").title = LANG_NAMES[next];
+    $("#lang").title = t(next === "es" ? "switchToSpanish" : "switchToEnglish");
   }
   async function setLang(l) {
     try {
@@ -35610,7 +35612,7 @@ void main() {
   var activeCrew = CREW[0].initials;
   var TELEMETRY_VITALS = [
     { id: "heartRate", labelKey: "metricHeartRate", unit: "BPM" },
-    { id: "respiratoryRate", labelKey: "metricRespiratoryRate", unit: "RPM" },
+    { id: "respiratoryRate", labelKey: "metricRespiratoryRate", unit: "breaths/min" },
     { id: "spo2", labelKey: "metricSpo2", unit: "%" },
     { id: "temperature", labelKey: "metricTemperature", unit: "\xB0C" },
     { id: "sleep", labelKey: "metricSleep", unit: "h" }

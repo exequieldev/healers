@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { LANGS, LANG_NAMES, STR, detectLang } from './i18n.js';
+import { LANGS, STR, detectLang } from './i18n.js';
 import { TRIAGE_PROTOCOL } from './triage.js';
 
 const $ = s => document.querySelector(s);
@@ -208,7 +208,8 @@ function applyStatic(){
   document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
   document.querySelectorAll('[data-i18n-attr]').forEach(el => el.dataset.i18nAttr.split(';').forEach(p => { const [a, k] = p.split(':'); el.setAttribute(a, t(k)); }));
   const next = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
-  $('#lang').textContent = next.toUpperCase(); $('#lang').title = LANG_NAMES[next];
+  $('#lang').textContent = next.toUpperCase();
+  $('#lang').title = t(next === 'es' ? 'switchToSpanish' : 'switchToEnglish');
 }
 async function setLang(l){
   try { await loadOverlay(l); } catch (e) { console.warn('Sin traducción para', l); return; }
@@ -269,7 +270,7 @@ const CREW = [
 let activeCrew = CREW[0].initials;
 const TELEMETRY_VITALS = [
   {id:'heartRate', labelKey:'metricHeartRate', unit:'BPM'},
-  {id:'respiratoryRate', labelKey:'metricRespiratoryRate', unit:'RPM'},
+  {id:'respiratoryRate', labelKey:'metricRespiratoryRate', unit:'breaths/min'},
   {id:'spo2', labelKey:'metricSpo2', unit:'%'},
   {id:'temperature', labelKey:'metricTemperature', unit:'°C'},
   {id:'sleep', labelKey:'metricSleep', unit:'h'},

@@ -1,20 +1,20 @@
 // Textos de la interfaz por idioma. Para añadir un idioma:
-//  1. añade su código a LANGS y a LANG_NAMES, y un bloque en STR (lo que falte se toma del español);
+//  1. añade su código a LANGS y un bloque en STR;
 //  2. crea data/anatomia.<código>.js con las fichas traducidas (ver CONTRIBUTING.md).
 export const LANGS = ['es', 'en'];
-export const LANG_NAMES = {es: 'Español', en: 'English'};
 
 export function detectLang(){
   const q = new URLSearchParams(location.search).get('lang');
   if (LANGS.includes(q)) return q;
   try { const s = localStorage.getItem('lang'); if (LANGS.includes(s)) return s; } catch (e) {}
-  const nav = (navigator.languages || [navigator.language || 'es']).map(l => l.slice(0, 2).toLowerCase());
-  return nav.find(l => LANGS.includes(l)) || 'en';
+  return 'en';
 }
 
 export const STR = {
   es: {
     langLabel: 'Idioma',
+    switchToEnglish: 'Cambiar a inglés',
+    switchToSpanish: 'Cambiar a español',
     crewTitle: 'Tripulación',
     crewSelect: 'Seleccionar tripulante',
     crewSelectHint: 'ELEGIR',
@@ -89,6 +89,8 @@ export const STR = {
   },
   en: {
     langLabel: 'Language',
+    switchToEnglish: 'Switch to English',
+    switchToSpanish: 'Switch to Spanish',
     crewTitle: 'Crew',
     crewSelect: 'Select crew member',
     crewSelectHint: 'SELECT',
@@ -109,7 +111,7 @@ export const STR = {
     telemetryTitle: 'Continuous telemetry',
     biometricsHeading: 'Vital signs · Bio-monitor',
     notAvailable: 'Unavailable',
-    views: 'Views', front: 'Anterior', back: 'Posterior', right: 'Right lateral', left: 'Left lateral', top: 'Superior',
+    views: 'Views', front: 'Front', back: 'Back', right: 'Right lateral', left: 'Left lateral', top: 'Top',
     spin: 'Rotate', reset: 'Reset',
     showFilters: 'Show filters', hideFilters: 'Hide filters',
     panelLayers: 'Layers and systems', panelCard: 'Guided assessment',

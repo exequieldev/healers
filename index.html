@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -316,41 +316,41 @@ dl.facts dd{margin:0;font-size:13px;color:var(--tx)}
 <div id="tip"></div>
 
 <header class="top">
-  <button id="filters-toggle" class="chipbtn filter-toggle" type="button" aria-label="Mostrar filtros" aria-expanded="false" title="Mostrar filtros" data-i18n-attr="aria-label:showFilters;title:showFilters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2m0 14.6v2.2M2.5 12h2.2m14.6 0h2.2M5.28 5.28l1.56 1.56m10.32 10.32 1.56 1.56m0-13.44-1.56 1.56M6.84 17.16l-1.56 1.56"/></svg></button>
-  <nav class="views" aria-label="Vistas" data-i18n-attr="aria-label:views">
-    <button class="chipbtn" data-view="front" data-i18n="front">Anterior</button>
-    <button class="chipbtn" data-view="back" data-i18n="back">Posterior</button>
-    <button class="chipbtn" data-view="right" data-i18n="right">Lateral dcho.</button>
-    <button class="chipbtn" data-view="left" data-i18n="left">Lateral izq.</button>
-    <button class="chipbtn" data-view="top" data-i18n="top">Superior</button>
-    <button class="chipbtn" id="spin" aria-pressed="false" data-i18n="spin">Girar</button>
-    <button class="chipbtn" id="reset" data-i18n="reset">Restablecer</button>
-    <button class="chipbtn" id="lang" aria-label="Idioma" data-i18n-attr="aria-label:langLabel"></button>
+  <button id="filters-toggle" class="chipbtn filter-toggle" type="button" aria-label="Show filters" aria-expanded="false" title="Show filters" data-i18n-attr="aria-label:showFilters;title:showFilters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2m0 14.6v2.2M2.5 12h2.2m14.6 0h2.2M5.28 5.28l1.56 1.56m10.32 10.32 1.56 1.56m0-13.44-1.56 1.56M6.84 17.16l-1.56 1.56"/></svg></button>
+  <nav class="views" aria-label="Views" data-i18n-attr="aria-label:views">
+    <button class="chipbtn" data-view="front" data-i18n="front">Front</button>
+    <button class="chipbtn" data-view="back" data-i18n="back">Back</button>
+    <button class="chipbtn" data-view="right" data-i18n="right">Right lateral</button>
+    <button class="chipbtn" data-view="left" data-i18n="left">Left lateral</button>
+    <button class="chipbtn" data-view="top" data-i18n="top">Top</button>
+    <button class="chipbtn" id="spin" aria-pressed="false" data-i18n="spin">Rotate</button>
+    <button class="chipbtn" id="reset" data-i18n="reset">Reset</button>
+    <button class="chipbtn" id="lang" aria-label="Language" data-i18n-attr="aria-label:langLabel"></button>
   </nav>
 </header>
 
-<aside id="crew" aria-label="Tripulación activa" data-i18n-attr="aria-label:crewTitle">
+<aside id="crew" aria-label="Active crew" data-i18n-attr="aria-label:crewTitle">
   <div class="crew-head">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.3"/><path d="M5.5 20v-1.6a6.5 6.5 0 0 1 13 0V20"/></svg>
-    <span data-i18n="crewTitle">Tripulación</span>
-    <span class="select-hint" data-i18n="crewSelectHint">ELEGIR</span>
+    <span data-i18n="crewTitle">Crew</span>
+    <span class="select-hint" data-i18n="crewSelectHint">SELECT</span>
   </div>
-  <div class="crew-list" id="crew-list" role="group" aria-label="Seleccionar tripulante" data-i18n-attr="aria-label:crewSelect"></div>
+  <div class="crew-list" id="crew-list" role="group" aria-label="Select crew member" data-i18n-attr="aria-label:crewSelect"></div>
 </aside>
 
-<aside class="panel" id="left" aria-label="Capas y sistemas" data-i18n-attr="aria-label:panelLayers">
+<aside class="panel" id="left" aria-label="Layers and systems" data-i18n-attr="aria-label:panelLayers">
   <div class="phead">
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Buscar estructura (p. ej. «fémur», «hígado»)" autocomplete="off" aria-label="Buscar estructura" data-i18n-attr="placeholder:searchPh;aria-label:search">
+      <input id="q" type="search" placeholder='Search structure (e.g. "femur", "liver")' autocomplete="off" aria-label="Search structure" data-i18n-attr="placeholder:searchPh;aria-label:search">
     </div>
     <div>
-      <div class="eyebrow" style="margin-bottom:7px" data-i18n="peel">Pelar capas</div>
-      <div class="peel" role="group" aria-label="Pelar capas" data-i18n-attr="aria-label:peel">
-        <button data-peel="0" aria-pressed="true" data-i18n="peelAll">Todo</button>
-        <button data-peel="1" aria-pressed="false" data-i18n="peelSkin">Sin piel</button>
-        <button data-peel="2" aria-pressed="false" data-i18n="peelMuscle">Sin músculo</button>
-        <button data-peel="3" aria-pressed="false" data-i18n="peelViscera">Vísceras</button>
+      <div class="eyebrow" style="margin-bottom:7px" data-i18n="peel">Peel layers</div>
+      <div class="peel" role="group" aria-label="Peel layers" data-i18n-attr="aria-label:peel">
+        <button data-peel="0" aria-pressed="true" data-i18n="peelAll">All</button>
+        <button data-peel="1" aria-pressed="false" data-i18n="peelSkin">No skin</button>
+        <button data-peel="2" aria-pressed="false" data-i18n="peelMuscle">No muscle</button>
+        <button data-peel="3" aria-pressed="false" data-i18n="peelViscera">Viscera</button>
       </div>
     </div>
   </div>
@@ -360,37 +360,37 @@ dl.facts dd{margin:0;font-size:13px;color:var(--tx)}
   </div>
 </aside>
 
-<aside class="panel" id="telemetry" aria-label="Telemetría continua" data-i18n-attr="aria-label:telemetryTitle">
+<aside class="panel" id="telemetry" aria-label="Continuous telemetry" data-i18n-attr="aria-label:telemetryTitle">
   <div class="telemetry-header">
     <div class="telemetry-title">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v3.8l2.4 1.4"/></svg>
-      <span data-i18n="telemetryTitle">Telemetría continua</span>
+      <span data-i18n="telemetryTitle">Continuous telemetry</span>
     </div>
     <span class="telemetry-subject" id="telemetry-subject" aria-live="polite"></span>
   </div>
   <section class="telemetry-section" aria-labelledby="telemetry-vitals-title">
-    <h3 id="telemetry-vitals-title" data-i18n="biometricsHeading">Signos vitales · Bio-monitor</h3>
+    <h3 id="telemetry-vitals-title" data-i18n="biometricsHeading">Vital signs · Bio-monitor</h3>
     <div class="telemetry-grid" id="telemetry-vitals"></div>
   </section>
 </aside>
 
 <!-- Ficha anatómica temporalmente deshabilitada; se conserva para poder reactivarla.
-<aside class="panel" id="right" aria-label="Ficha de la estructura" data-i18n-attr="aria-label:panelCard">
+<aside class="panel" id="right" aria-label="Structure card" data-i18n-attr="aria-label:panelCard">
   <div class="pbody" style="padding:0"><div id="info"></div></div>
 </aside>
 -->
 
-<aside class="panel" id="right" aria-label="Evaluación guiada" data-i18n-attr="aria-label:panelCard">
+<aside class="panel" id="right" aria-label="Guided assessment" data-i18n-attr="aria-label:panelCard">
   <div class="pbody" style="padding:0"><div id="triage" aria-live="polite"></div></div>
 </aside>
 
-<div class="tabs" role="group" aria-label="Paneles" data-i18n-attr="aria-label:tabs">
-  <button data-tab="none" aria-pressed="true" data-i18n="tabModel">Modelo</button>
-  <button data-tab="telemetry" aria-pressed="false" data-i18n="tabTelemetry">Signos</button>
-  <button data-tab="right" aria-pressed="false" data-i18n="tabCard">Ficha</button>
+<div class="tabs" role="group" aria-label="Panels" data-i18n-attr="aria-label:tabs">
+  <button data-tab="none" aria-pressed="true" data-i18n="tabModel">Model</button>
+  <button data-tab="telemetry" aria-pressed="false" data-i18n="tabTelemetry">Vitals</button>
+  <button data-tab="right" aria-pressed="false" data-i18n="tabCard">Assessment</button>
 </div>
 
-<div id="loader"><div class="lt"><span id="ltxt" data-i18n="loading">Cargando modelo anatómico…</span><span id="lpct">0 %</span></div><div class="bar"><i id="lbar"></i></div><div id="err" hidden></div></div>
+<div id="loader"><div class="lt"><span id="ltxt" data-i18n="loading">Loading anatomical model…</span><span id="lpct">0 %</span></div><div class="bar"><i id="lbar"></i></div><div id="err" hidden></div></div>
 <script src="data/anatomia.js"></script>
 <script src="models/esq.js"></script>
 <script src="models/mus.js"></script>
