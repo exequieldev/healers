@@ -34924,6 +34924,10 @@ void main() {
       triageEmergencyHeading: "PROTOCOLO DE EMERGENCIA \u2014 ALARMA ROJA",
       triageEmergencyBody: "Se alcanz\xF3 el umbral de alerta. Interrogatorio secundario suspendido: mantenga el enlace con soporte m\xE9dico.",
       triageEmergencyActions: "Acciones inmediatas",
+      triageEmergencyStep: (step, total) => `PASO ${step} DE ${total}`,
+      triageBackToActions: "\u2190 Volver a las 5 acciones",
+      triageMarkComplete: "Marcar como completado",
+      triageMarkedComplete: "Completado",
       triageNewEvaluation: "Nueva evaluaci\xF3n",
       triageCompleteHeading: "Evaluaci\xF3n completada",
       triageCompleteBody: "Se registraron las respuestas del cuestionario. Solicite la revisi\xF3n de personal m\xE9dico; este visor no genera un diagn\xF3stico.",
@@ -35019,6 +35023,10 @@ void main() {
       triageEmergencyHeading: "EMERGENCY PROTOCOL \u2014 RED ALERT",
       triageEmergencyBody: "The alert threshold has been reached. Secondary questioning is suspended: maintain contact with medical support.",
       triageEmergencyActions: "Immediate actions",
+      triageEmergencyStep: (step, total) => `STEP ${step} OF ${total}`,
+      triageBackToActions: "\u2190 Back to the 5 actions",
+      triageMarkComplete: "Mark as complete",
+      triageMarkedComplete: "Completed",
       triageNewEvaluation: "New assessment",
       triageCompleteHeading: "Assessment complete",
       triageCompleteBody: "Questionnaire responses were recorded. Request review by medical personnel; this viewer does not provide a diagnosis.",
@@ -35097,6 +35105,56 @@ void main() {
         "Perform a complete neurological assessment.",
         "Proceed with crew-member stabilization.",
         "Coordinate urgent medical care / evacuation if applicable."
+      ]
+    },
+    emergencyDetails: {
+      es: [
+        [
+          "Usa el control de emergencia asignado para activar Alarma Roja en el m\xF3dulo m\xE9dico.",
+          "Suspende las tareas no esenciales y despeja el m\xF3dulo m\xE9dico, manteniendo libres las rutas de acceso.",
+          "Re\xFAne al resto de la tripulaci\xF3n y asigna funciones de apoyo: comunicaciones, monitorizaci\xF3n y asistencia al equipo m\xE9dico."
+        ],
+        [
+          "Abre el canal de emergencia con los cirujanos de vuelo y Control de Misi\xF3n conforme al procedimiento.",
+          "Prioriza la transmisi\xF3n en tiempo real de los signos vitales y los datos ambientales de cabina."
+        ],
+        [
+          "Registra el nivel de conciencia, la orientaci\xF3n en tiempo, espacio y persona, y cualquier cambio en el habla; comunica los hallazgos a Control en Tierra.",
+          "Solo personal entrenado debe realizar las comprobaciones neurol\xF3gicas previstas en el protocolo y comunicar los resultados al equipo m\xE9dico."
+        ],
+        [
+          "Mant\xE9n al tripulante protegido de golpes en una ubicaci\xF3n segura; evita traslados o sujeciones salvo que lo indiquen el protocolo y el equipo m\xE9dico.",
+          "El ox\xEDgeno y cualquier soporte de v\xEDa a\xE9rea o ventilatorio deben ser administrados solo por personal capacitado, siguiendo indicaciones m\xE9dicas en tiempo real y el protocolo aprobado.",
+          "No administres medicaci\xF3n ni realices primeros auxilios avanzados sin indicaci\xF3n del equipo m\xE9dico en Tierra."
+        ],
+        [
+          "Mant\xE9n la vigilancia y comunica los cambios cl\xEDnicos al equipo m\xE9dico de Control en Tierra seg\xFAn el protocolo de la misi\xF3n.",
+          "La preparaci\xF3n de una c\xE1psula de retorno y cualquier evacuaci\xF3n deben coordinarse con Control en Tierra y seguir el plan aprobado de la misi\xF3n."
+        ]
+      ],
+      en: [
+        [
+          "Use the assigned emergency control to activate the Red Alert in the medical module.",
+          "Stop non-essential tasks and clear the medical module, keeping access routes open.",
+          "Gather the crew and assign support roles: communications, monitoring, and assistance to the medical team."
+        ],
+        [
+          "Open the emergency channel with the flight surgeons and Mission Control according to procedure.",
+          "Prioritize real-time transmission of vital signs and cabin environmental data."
+        ],
+        [
+          "Record level of consciousness, orientation to time, place, and person, and any speech changes; relay findings to Ground Control.",
+          "Only trained personnel should perform the neurological checks specified by protocol and report the results to the medical team."
+        ],
+        [
+          "Keep the crew member protected from impact in a safe location; avoid moving or restraining them unless directed by protocol and the medical team.",
+          "Oxygen and any airway or ventilatory support should only be provided by trained personnel, following real-time medical direction and the approved protocol.",
+          "Do not administer medication or perform advanced first aid without direction from the medical team on Earth."
+        ],
+        [
+          "Maintain observation and report clinical changes to the Ground Control medical team according to mission protocol.",
+          "Preparing a return capsule and any evacuation must be coordinated with Ground Control and follow the approved mission plan."
+        ]
       ]
     },
     specificQuestions: {
@@ -35301,7 +35359,8 @@ void main() {
     positiveRedFlags: [],
     specificIndex: 0,
     specificResponses: [],
-    completedChecklist: /* @__PURE__ */ new Set()
+    completedChecklist: /* @__PURE__ */ new Set(),
+    selectedEmergencyStep: null
   });
   var triageState = createTriageState();
   var triagePartId = null;
@@ -35990,9 +36049,10 @@ void main() {
       ${triageQuestionView(questions[index], index, questions.length, [t("triageYes"), t("triageNo")], percent)}
       <div class="triage-nav"><button type="button" data-triage-back>${t("triagePrevious")}</button><span class="triage-note">${t("triageEmergencyThreshold")}</span></div>`;
     } else if (triageState.step === "emergency") {
-      const checklist = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist).map((text, index) => {
+      const actions = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist);
+      const checklist = actions.map((text, index) => {
         const checked = triageState.completedChecklist.has(index);
-        return `<button type="button" class="triage-check" data-triage-check="${index}" aria-pressed="${checked}">
+        return `<button type="button" class="triage-check" data-triage-step="${index}" aria-pressed="${checked}">
         <span aria-hidden="true">${checked ? "\u2713" : index + 1}</span><span>${esc(text)}</span>
       </button>`;
       }).join("");
@@ -36000,9 +36060,22 @@ void main() {
       </div>
       <div><p><strong>${t("triagePositiveCount", triageState.positiveRedFlags.length)}</strong></p>
         <ul class="triage-summary">${triageState.positiveRedFlags.map((text) => `<li>${esc(text)}</li>`).join("")}</ul>
-      </div>
-      <div><span class="triage-step">${t("triageEmergencyActions")}</span><div class="triage-checklist">${checklist}</div></div>
-      <button class="triage-action" type="button" data-triage-reset>${t("triageNewEvaluation")}</button>`;
+      </div>`;
+      if (triageState.selectedEmergencyStep === null) {
+        content += `<div><span class="triage-step">${t("triageEmergencyActions")}</span><div class="triage-checklist">${checklist}</div></div>
+        <button class="triage-action" type="button" data-triage-reset>${t("triageNewEvaluation")}</button>`;
+      } else {
+        const step = triageState.selectedEmergencyStep;
+        const details = triageTexts(TRIAGE_PROTOCOL.emergencyDetails)[step];
+        const isComplete = triageState.completedChecklist.has(step);
+        content += `<div class="triage-head"><span class="triage-step">${t("triageEmergencyStep", step + 1, actions.length)}</span>
+          <h2>${esc(actions[step])}</h2></div>
+        <ul class="triage-instructions">${details.map((detail) => `<li>${esc(detail)}</li>`).join("")}</ul>
+        <div class="triage-detail-actions">
+          <button class="triage-action" type="button" data-triage-actions-back>${t("triageBackToActions")}</button>
+          <button class="triage-action" type="button" data-triage-complete aria-pressed="${isComplete}">${isComplete ? t("triageMarkedComplete") : t("triageMarkComplete")}</button>
+        </div>`;
+      }
     } else if (triageState.step === "specific") {
       const questions = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]);
       const index = triageState.specificIndex;
@@ -36082,12 +36155,25 @@ void main() {
       }
       renderTriagePanel();
     });
-    box.querySelectorAll("[data-triage-check]").forEach((button) => button.addEventListener("click", () => {
-      const index = Number(button.dataset.triageCheck);
+    box.querySelectorAll("[data-triage-step]").forEach((button) => button.addEventListener("click", () => {
+      const index = Number(button.dataset.triageStep);
+      const total = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist).length;
+      if (Number.isInteger(index) && index >= 0 && index < total) {
+        triageState.selectedEmergencyStep = index;
+        renderTriagePanel();
+      }
+    }));
+    box.querySelector("[data-triage-actions-back]")?.addEventListener("click", () => {
+      triageState.selectedEmergencyStep = null;
+      renderTriagePanel();
+    });
+    box.querySelector("[data-triage-complete]")?.addEventListener("click", () => {
+      const index = triageState.selectedEmergencyStep;
+      if (index === null) return;
       if (triageState.completedChecklist.has(index)) triageState.completedChecklist.delete(index);
       else triageState.completedChecklist.add(index);
       renderTriagePanel();
-    }));
+    });
     box.querySelector("[data-triage-reset]")?.addEventListener("click", () => {
       resetTriageForSelectedPart();
       renderTriagePanel();

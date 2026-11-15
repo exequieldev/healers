@@ -67,6 +67,56 @@ export const TRIAGE_PROTOCOL = {
       'Coordinate urgent medical care / evacuation if applicable.',
     ],
   },
+  emergencyDetails: {
+    es: [
+      [
+        'Usa el control de emergencia asignado para activar Alarma Roja en el módulo médico.',
+        'Suspende las tareas no esenciales y despeja el módulo médico, manteniendo libres las rutas de acceso.',
+        'Reúne al resto de la tripulación y asigna funciones de apoyo: comunicaciones, monitorización y asistencia al equipo médico.',
+      ],
+      [
+        'Abre el canal de emergencia con los cirujanos de vuelo y Control de Misión conforme al procedimiento.',
+        'Prioriza la transmisión en tiempo real de los signos vitales y los datos ambientales de cabina.',
+      ],
+      [
+        'Registra el nivel de conciencia, la orientación en tiempo, espacio y persona, y cualquier cambio en el habla; comunica los hallazgos a Control en Tierra.',
+        'Solo personal entrenado debe realizar las comprobaciones neurológicas previstas en el protocolo y comunicar los resultados al equipo médico.',
+      ],
+      [
+        'Mantén al tripulante protegido de golpes en una ubicación segura; evita traslados o sujeciones salvo que lo indiquen el protocolo y el equipo médico.',
+        'El oxígeno y cualquier soporte de vía aérea o ventilatorio deben ser administrados solo por personal capacitado, siguiendo indicaciones médicas en tiempo real y el protocolo aprobado.',
+        'No administres medicación ni realices primeros auxilios avanzados sin indicación del equipo médico en Tierra.',
+      ],
+      [
+        'Mantén la vigilancia y comunica los cambios clínicos al equipo médico de Control en Tierra según el protocolo de la misión.',
+        'La preparación de una cápsula de retorno y cualquier evacuación deben coordinarse con Control en Tierra y seguir el plan aprobado de la misión.',
+      ],
+    ],
+    en: [
+      [
+        'Use the assigned emergency control to activate the Red Alert in the medical module.',
+        'Stop non-essential tasks and clear the medical module, keeping access routes open.',
+        'Gather the crew and assign support roles: communications, monitoring, and assistance to the medical team.',
+      ],
+      [
+        'Open the emergency channel with the flight surgeons and Mission Control according to procedure.',
+        'Prioritize real-time transmission of vital signs and cabin environmental data.',
+      ],
+      [
+        'Record level of consciousness, orientation to time, place, and person, and any speech changes; relay findings to Ground Control.',
+        'Only trained personnel should perform the neurological checks specified by protocol and report the results to the medical team.',
+      ],
+      [
+        'Keep the crew member protected from impact in a safe location; avoid moving or restraining them unless directed by protocol and the medical team.',
+        'Oxygen and any airway or ventilatory support should only be provided by trained personnel, following real-time medical direction and the approved protocol.',
+        'Do not administer medication or perform advanced first aid without direction from the medical team on Earth.',
+      ],
+      [
+        'Maintain observation and report clinical changes to the Ground Control medical team according to mission protocol.',
+        'Preparing a return capsule and any evacuation must be coordinated with Ground Control and follow the approved mission plan.',
+      ],
+    ],
+  },
   specificQuestions: {
     frontal: {
       es: [

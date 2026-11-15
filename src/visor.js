@@ -96,6 +96,7 @@ const createTriageState = () => ({
   specificIndex: 0,
   specificResponses: [],
   completedChecklist: new Set(),
+  selectedEmergencyStep: null,
 });
 let triageState = createTriageState();
 let triagePartId = null;
@@ -659,9 +660,10 @@ function renderTriagePanel(){
       ${triageQuestionView(questions[index], index, questions.length, [t('triageYes'), t('triageNo')], percent)}
       <div class="triage-nav"><button type="button" data-triage-back>${t('triagePrevious')}</button><span class="triage-note">${t('triageEmergencyThreshold')}</span></div>`;
   } else if (triageState.step === 'emergency'){
-    const checklist = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist).map((text, index) => {
+    const actions = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist);
+    const checklist = actions.map((text, index) => {
       const checked = triageState.completedChecklist.has(index);
-      return `<button type="button" class="triage-check" data-triage-check="${index}" aria-pressed="${checked}">
+      return `<button type="button" class="triage-check" data-triage-step="${index}" aria-pressed="${checked}">
         <span aria-hidden="true">${checked ? '✓' : index + 1}</span><span>${esc(text)}</span>
       </button>`;
     }).join('');
@@ -669,9 +671,22 @@ function renderTriagePanel(){
       </div>
       <div><p><strong>${t('triagePositiveCount', triageState.positiveRedFlags.length)}</strong></p>
         <ul class="triage-summary">${triageState.positiveRedFlags.map(text => `<li>${esc(text)}</li>`).join('')}</ul>
-      </div>
-      <div><span class="triage-step">${t('triageEmergencyActions')}</span><div class="triage-checklist">${checklist}</div></div>
-      <button class="triage-action" type="button" data-triage-reset>${t('triageNewEvaluation')}</button>`;
+      </div>`;
+    if (triageState.selectedEmergencyStep === null){
+      content += `<div><span class="triage-step">${t('triageEmergencyActions')}</span><div class="triage-checklist">${checklist}</div></div>
+        <button class="triage-action" type="button" data-triage-reset>${t('triageNewEvaluation')}</button>`;
+    } else {
+      const step = triageState.selectedEmergencyStep;
+      const details = triageTexts(TRIAGE_PROTOCOL.emergencyDetails)[step];
+      const isComplete = triageState.completedChecklist.has(step);
+      content += `<div class="triage-head"><span class="triage-step">${t('triageEmergencyStep', step + 1, actions.length)}</span>
+          <h2>${esc(actions[step])}</h2></div>
+        <ul class="triage-instructions">${details.map(detail => `<li>${esc(detail)}</li>`).join('')}</ul>
+        <div class="triage-detail-actions">
+          <button class="triage-action" type="button" data-triage-actions-back>${t('triageBackToActions')}</button>
+          <button class="triage-action" type="button" data-triage-complete aria-pressed="${isComplete}">${isComplete ? t('triageMarkedComplete') : t('triageMarkComplete')}</button>
+        </div>`;
+    }
   } else if (triageState.step === 'specific'){
     const questions = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]);
     const index = triageState.specificIndex;
@@ -757,12 +772,25 @@ function renderTriagePanel(){
     }
     renderTriagePanel();
   });
-  box.querySelectorAll('[data-triage-check]').forEach(button => button.addEventListener('click', () => {
-    const index = Number(button.dataset.triageCheck);
+  box.querySelectorAll('[data-triage-step]').forEach(button => button.addEventListener('click', () => {
+    const index = Number(button.dataset.triageStep);
+    const total = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist).length;
+    if (Number.isInteger(index) && index >= 0 && index < total){
+      triageState.selectedEmergencyStep = index;
+      renderTriagePanel();
+    }
+  }));
+  box.querySelector('[data-triage-actions-back]')?.addEventListener('click', () => {
+    triageState.selectedEmergencyStep = null;
+    renderTriagePanel();
+  });
+  box.querySelector('[data-triage-complete]')?.addEventListener('click', () => {
+    const index = triageState.selectedEmergencyStep;
+    if (index === null) return;
     if (triageState.completedChecklist.has(index)) triageState.completedChecklist.delete(index);
     else triageState.completedChecklist.add(index);
     renderTriagePanel();
-  }));
+  });
   box.querySelector('[data-triage-reset]')?.addEventListener('click', () => {
     resetTriageForSelectedPart();
     renderTriagePanel();
