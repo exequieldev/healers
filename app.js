@@ -34840,7 +34840,6 @@ void main() {
     es: {
       title: "Anatom\xEDa en capas",
       metaDesc: "Atlas 3D interactivo del cuerpo humano con 934 estructuras anat\xF3micas en capas, fichas y b\xFAsqueda. Disponible en espa\xF1ol e ingl\xE9s. Uso educativo.",
-      brand: "Anatom\xEDa <em>en capas</em>",
       langLabel: "Idioma",
       views: "Vistas",
       front: "Anterior",
@@ -34850,11 +34849,12 @@ void main() {
       top: "Superior",
       spin: "Girar",
       reset: "Restablecer",
+      showFilters: "Mostrar filtros",
+      hideFilters: "Ocultar filtros",
       panelLayers: "Capas y sistemas",
       panelCard: "Ficha de la estructura",
       tabs: "Paneles",
       tabModel: "Modelo",
-      tabLayers: "Capas",
       tabCard: "Ficha",
       searchPh: "Buscar estructura (p. ej. \xABf\xE9mur\xBB, \xABh\xEDgado\xBB)",
       search: "Buscar estructura",
@@ -34864,12 +34864,10 @@ void main() {
       peelMuscle: "Sin m\xFAsculo",
       peelViscera: "V\xEDsceras",
       loading: "Cargando modelo anat\xF3mico\u2026",
-      credit: 'Modelo 3D: <a href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noopener">BodyParts3D</a> \xA9 DBCLS \xB7 <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.es" target="_blank" rel="noopener">CC BY-SA 2.1 JP</a> \xB7 adaptaci\xF3n CC BY-SA 4.0 \xB7 simplificado para web \xB7 uso educativo, no cl\xEDnico \xB7 <a href="https://github.com/niuxito/human-body" target="_blank" rel="noopener">c\xF3digo en GitHub</a>',
       sideD: "Lado derecho",
       sideI: "Lado izquierdo",
       sideDs: "dcho.",
       sideIs: "izq.",
-      stats: (n, c, s) => `${n} estructuras \xB7 ${c} fichas \xB7 ${s} sistemas \xB7 var\xF3n adulto`,
       systemReady: (name, d, total) => `Sistema ${name.toLowerCase()} listo (${d}/${total})`,
       modelDone: "Modelo completo",
       errSystem: (name) => `No se pudo cargar el sistema ${name}.`,
@@ -34884,25 +34882,15 @@ void main() {
       how2: "Haz clic en un \xF3rgano, hueso o m\xFAsculo para ver su nombre y su ficha.",
       how3: "Usa <b>Pelar capas</b> o el ojo de cada sistema para retirar tejidos; ajusta su opacidad para ver a trav\xE9s.",
       how4: "Atajos: <kbd>Esc</kbd> deseleccionar \xB7 <kbd>F</kbd> enfocar \xB7 <kbd>H</kbd> ocultar \xB7 <kbd>I</kbd> aislar",
-      systemsIncluded: "Sistemas incluidos",
-      aboutTitle: "Acerca del modelo y su rigor",
-      about: `<p>La geometr\xEDa procede de <a href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noopener">BodyParts3D</a> (Database Center for Life Science, Jap\xF3n), un atlas construido a partir de im\xE1genes de resonancia magn\xE9tica de un var\xF3n adulto y etiquetado con los identificadores de la <i>Foundational Model of Anatomy</i> (FMA). Cada malla conserva su identificador original, visible en la ficha.</p>
-        <p>Para que funcione en el navegador, las mallas se han simplificado (\u224826 millones \u2192 \u22483,3 millones de tri\xE1ngulos) sin alterar su posici\xF3n ni su forma general. La nomenclatura sigue la Terminolog\xEDa Anat\xF3mica en espa\xF1ol.</p>
-        <p><b>Estructuras que el modelo de origen no incluye:</b></p>
-        <ul><li>M\xE9dula espinal y nervios perif\xE9ricos (solo el nervio y la v\xEDa \xF3pticos).</li><li>Gl\xE1ndula tiroides, lengua, gl\xE1ndulas salivales, faringe y laringe (salvo el cart\xEDlago tiroides).</li><li>Ganglios y vasos linf\xE1ticos; la mayor\xEDa de arterias y venas de los miembros y de la cabeza.</li><li>Terceros molares, meninges y algunas circunvoluciones cerebrales.</li><li>Anatom\xEDa femenina: el modelo es de un \xFAnico individuo var\xF3n, por lo que hay variaci\xF3n anat\xF3mica normal entre personas.</li></ul>
-        <p>Licencia: los datos se distribuyen bajo <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.es" target="_blank" rel="noopener">CC BY-SA 2.1 Jap\xF3n</a>; las mallas derivadas y las fichas de este visor se comparten bajo <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a>, y el c\xF3digo bajo licencia MIT.</p>
-        <p><b>Uso educativo, no cl\xEDnico.</b> Este atlas es un material de estudio: no sirve para diagn\xF3stico ni para decisiones m\xE9dicas, y sus fichas no han sido revisadas por especialistas.</p>`,
       focus: "Enfocar",
       isolate: "Aislar",
       showAll: "Ver todo",
       hide: "Ocultar",
       dimRest: "Atenuar el resto del cuerpo",
-      source: (id, en) => `Fuente: BodyParts3D \xB7 ${id}<br>T\xE9rmino original: ${en}`
     },
     en: {
       title: "Layered Anatomy",
       metaDesc: "Interactive 3D atlas of the human body with 934 anatomical structures in layers, cards and search. Available in Spanish and English. Educational use.",
-      brand: "Layered <em>anatomy</em>",
       langLabel: "Language",
       views: "Views",
       front: "Anterior",
@@ -34912,11 +34900,12 @@ void main() {
       top: "Superior",
       spin: "Rotate",
       reset: "Reset",
+      showFilters: "Show filters",
+      hideFilters: "Hide filters",
       panelLayers: "Layers and systems",
       panelCard: "Structure card",
       tabs: "Panels",
       tabModel: "Model",
-      tabLayers: "Layers",
       tabCard: "Card",
       searchPh: 'Search structure (e.g. "femur", "liver")',
       search: "Search structure",
@@ -34926,12 +34915,10 @@ void main() {
       peelMuscle: "No muscle",
       peelViscera: "Viscera",
       loading: "Loading anatomical model\u2026",
-      credit: '3D model: <a href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noopener">BodyParts3D</a> \xA9 DBCLS \xB7 <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en" target="_blank" rel="noopener">CC BY-SA 2.1 JP</a> \xB7 adaptation CC BY-SA 4.0 \xB7 simplified for the web \xB7 educational use, not clinical \xB7 <a href="https://github.com/niuxito/human-body" target="_blank" rel="noopener">code on GitHub</a>',
       sideD: "Right side",
       sideI: "Left side",
       sideDs: "R",
       sideIs: "L",
-      stats: (n, c, s) => `${n} structures \xB7 ${c} cards \xB7 ${s} systems \xB7 adult male`,
       systemReady: (name, d, total) => `${name} system ready (${d}/${total})`,
       modelDone: "Model complete",
       errSystem: (name) => `Could not load the ${name} system.`,
@@ -34946,20 +34933,11 @@ void main() {
       how2: "Click an organ, bone or muscle to see its name and its card.",
       how3: "Use <b>Peel layers</b> or the eye on each system to remove tissues; adjust opacity to see through.",
       how4: "Shortcuts: <kbd>Esc</kbd> deselect \xB7 <kbd>F</kbd> focus \xB7 <kbd>H</kbd> hide \xB7 <kbd>I</kbd> isolate",
-      systemsIncluded: "Systems included",
-      aboutTitle: "About the model and its rigor",
-      about: `<p>The geometry comes from <a href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noopener">BodyParts3D</a> (Database Center for Life Science, Japan), an atlas built from magnetic resonance images of an adult male and labelled with <i>Foundational Model of Anatomy</i> (FMA) identifiers. Each mesh keeps its original identifier, shown on its card.</p>
-        <p>To run in the browser, the meshes were simplified (\u224826 million \u2192 \u22483.3 million triangles) without altering their position or overall shape. Nomenclature follows the Terminologia Anatomica. The cards were written in Spanish; the English cards are a translation that has not been reviewed by specialists.</p>
-        <p><b>Structures the source model does not include:</b></p>
-        <ul><li>Spinal cord and peripheral nerves (only the optic nerve and pathway).</li><li>Thyroid gland, tongue, salivary glands, pharynx and larynx (except the thyroid cartilage).</li><li>Lymph nodes and lymphatic vessels; most arteries and veins of the limbs and head.</li><li>Third molars, meninges and some cerebral gyri.</li><li>Female anatomy: the model is a single male individual, so normal anatomical variation between people applies.</li></ul>
-        <p>License: the data are distributed under <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en" target="_blank" rel="noopener">CC BY-SA 2.1 Japan</a>; the derived meshes and the cards of this viewer are shared under <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.en" target="_blank" rel="noopener">CC BY-SA 4.0</a>, and the code under the MIT license.</p>
-        <p><b>Educational use, not clinical.</b> This atlas is study material: it is not for diagnosis or medical decisions, and its cards have not been reviewed by specialists.</p>`,
       focus: "Focus",
       isolate: "Isolate",
       showAll: "Show all",
       hide: "Hide",
       dimRest: "Dim the rest of the body",
-      source: (id, en) => `Source: BodyParts3D \xB7 ${id}<br>Original term: ${en}`
     }
   };
 
@@ -35245,10 +35223,6 @@ void main() {
     const next = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
     $("#lang").textContent = next.toUpperCase();
     $("#lang").title = LANG_NAMES[next];
-    if (DATA2) {
-      const nConc = new Set(DATA2.parts.map((p) => p.c)).size;
-      $("#stats").textContent = t("stats", DATA2.parts.length, nConc, DATA2.systems.length);
-    }
   }
   async function setLang(l) {
     try {
@@ -35423,22 +35397,15 @@ void main() {
         <li><span>\u2462</span><span>${t("how3")}</span></li>
         <li><span>\u2463</span><span>${t("how4")}</span></li>
       </ul>
-      <div class="eyebrow" style="margin-top:6px">${t("systemsIncluded")}</div>
-      <div class="syslist">${DATA2.systems.map((s2) => `<div><span class="sw" style="background:${s2.c}"></span><span><b>${esc(s2.n)}.</b> ${esc(s2.d)}</span></div>`).join("")}</div>
-      <details class="about"><summary>${t("aboutTitle")}</summary>
-        ${t("about")}
-      </details></div>`;
+      </div>`;
       return;
     }
-    const P = PARTS[selected], c = CONC[P.p.c], s = SYS[c.s];
-    box.innerHTML = `<div class="tags"><span class="tag"><span class="sw" style="background:${s.c}"></span>${esc(s.n)}</span>${P.p.sd ? `<span class="tag">${SIDE[P.p.sd]}</span>` : ""}</div>
-    <h2>${esc(c.n)}</h2>
-    <div class="grpname">${esc(c.g)}</div>
+    const P = PARTS[selected], c = CONC[P.p.c];
+    const facts = c.f.filter(([key]) => !["Origen", "Inserción", "Acción", "Inervación", "Origin", "Insertion", "Action", "Innervation"].includes(key));
+    box.innerHTML = `<h2>${esc(c.n)}</h2>
     <div class="actions"><button class="btn primary" data-act="focus">${t("focus")}</button><button class="btn" data-act="iso">${isolated ? t("showAll") : t("isolate")}</button><button class="btn" data-act="hide">${t("hide")}</button></div>
-    <p class="desc">${esc(c.d)}</p>
-    ${c.f.length ? `<dl class="facts">${c.f.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
-    <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer"><input type="checkbox" id="focusmode" ${focusMode ? "checked" : ""} style="accent-color:var(--acc)"> ${t("dimRest")}</label>
-    <div class="src">${t("source", esc(selected), esc(P.p.en))}</div>`;
+    ${facts.length ? `<dl class="facts">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
+    <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer"><input type="checkbox" id="focusmode" ${focusMode ? "checked" : ""} style="accent-color:var(--acc)"> ${t("dimRest")}</label>`;
     box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => ({ focus: focusSel, iso: toggleIsolate, hide: hideSel })[b.dataset.act]()));
     box.querySelector("#focusmode").addEventListener("change", (e) => {
       focusMode = e.target.checked;
@@ -35531,14 +35498,18 @@ void main() {
   function flyTo(pos, target, ms = 750) {
     fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, s: performance.now(), ms: matchMedia("(prefers-reduced-motion: reduce)").matches ? 1 : ms };
   }
-  var VIEWS = { front: [0, 0.95, 3.3], back: [0, 0.95, -3.3], right: [-3.3, 0.95, 0], left: [3.3, 0.95, 0], top: [0, 4.2, 0.35] };
+  var INITIAL_CAMERA_TARGET = new Vector3(0, 1.35, 0);
+  var INITIAL_CAMERA_POSITION = new Vector3(0.51, 1.49, 1.07);
+  var INITIAL_CAMERA_DISTANCE = INITIAL_CAMERA_POSITION.distanceTo(INITIAL_CAMERA_TARGET);
+  var VIEWS = { front: [0, 0, 1], back: [0, 0, -1], right: [-1, 0, 0], left: [1, 0, 0], top: [0, 1, 0.08] };
   function setView(v) {
-    const t2 = new Vector3(0, v === "top" ? 0.9 : 0.88, 0);
-    flyTo(new Vector3(...VIEWS[v]), t2);
+    const target = INITIAL_CAMERA_TARGET.clone();
+    const direction = new Vector3(...VIEWS[v]).normalize();
+    flyTo(target.clone().add(direction.multiplyScalar(INITIAL_CAMERA_DISTANCE)), target);
   }
   document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
-  camera.position.set(0.9, 1.15, 3.1);
-  controls.target.set(0, 0.9, 0);
+  camera.position.copy(INITIAL_CAMERA_POSITION);
+  controls.target.copy(INITIAL_CAMERA_TARGET);
   controls.update();
   $("#spin").addEventListener("click", (e) => {
     controls.autoRotate = !controls.autoRotate;
@@ -35635,9 +35606,18 @@ void main() {
     else if (e.key === "h" || e.key === "H") hideSel();
     else if (e.key === "i" || e.key === "I") toggleIsolate();
   });
+  function setFilterPanel(open) {
+    $("#left").classList.toggle("show", open);
+    const label = t(open ? "hideFilters" : "showFilters");
+    const button = $("#filters-toggle");
+    button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
   function showTab(t2) {
     if (innerWidth > 900) return;
-    ["left", "right"].forEach((k) => $("#" + k).classList.toggle("show", k === t2));
+    setFilterPanel(t2 === "left");
+    $("#right").classList.toggle("show", t2 === "right");
     document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tab === t2)));
     fitView();
   }
@@ -35658,11 +35638,16 @@ void main() {
     camera.updateProjectionMatrix();
   }
   document.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  $("#filters-toggle").addEventListener("click", () => {
+    const open = !$("#left").classList.contains("show");
+    if (open && innerWidth <= 900) showTab("none");
+    setFilterPanel(open);
+    if (innerWidth <= 900) fitView();
+  });
   function layout() {
     if (innerWidth > 900) {
-      $("#left").classList.add("show");
       $("#right").classList.add("show");
-    } else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab("left");
+    } else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab("none");
     else showTab(document.querySelector('[data-tab][aria-pressed="true"]').dataset.tab);
   }
   layout();

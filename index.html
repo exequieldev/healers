@@ -51,17 +51,17 @@ button{font:inherit;color:inherit}
 
 /* ---------- barra superior */
 .top{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;display:flex;gap:12px;align-items:flex-start;pointer-events:none;z-index:5}
-.brand{pointer-events:auto;padding:4px 2px}
-.brand h1{margin:0;font:500 26px/1 var(--serif);letter-spacing:-.01em;text-wrap:balance}
-.brand h1 em{font-style:italic;color:var(--acc)}
-.brand p{margin:6px 0 0;color:var(--mut);font-size:12px;letter-spacing:.02em}
 .views{margin-left:auto;display:flex;gap:6px;pointer-events:auto;flex-wrap:wrap;justify-content:flex-end}
 .chipbtn{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:12px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:border-color .15s,background .15s;white-space:nowrap}
 .chipbtn:hover{border-color:var(--line2);background:var(--bg2)}
 .chipbtn[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.filter-toggle{pointer-events:auto;display:grid;place-items:center;width:36px;height:36px;padding:0}
+.filter-toggle svg{width:18px;height:18px}
+.filter-toggle[aria-expanded="true"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
 
 /* ---------- paneles */
 .panel{position:fixed;top:92px;bottom:16px;width:330px;background:var(--panel);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;flex-direction:column;z-index:4;overflow:hidden}
+.panel:not(.show){display:none}
 #left{left:16px}
 #right{right:16px;width:360px}
 .phead{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
@@ -118,17 +118,11 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 
 /* ---------- ficha */
 #info{padding:18px 18px 20px;display:flex;flex-direction:column;gap:14px}
-.tags{display:flex;flex-wrap:wrap;gap:6px}
-.tag{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--mut);display:inline-flex;gap:6px;align-items:center}
-.tag .sw{width:8px;height:8px;border-radius:50%}
 #info h2{margin:0;font:500 27px/1.12 var(--serif);letter-spacing:-.01em;text-wrap:balance}
-#info .grpname{color:var(--mut);font-size:12.5px;margin-top:-6px}
-#info .desc{margin:0;color:#cfd9de;font-size:14px;line-height:1.58;max-width:62ch}
 dl.facts{margin:0;display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--line)}
 dl.facts div{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
 dl.facts dt{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding-top:2px}
 dl.facts dd{margin:0;font-size:13px;color:var(--tx)}
-.src{font:11px/1.5 var(--mono);color:var(--dim);word-break:break-word}
 .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .btn{background:var(--bg1);border:1px solid var(--line);border-radius:8px;padding:8px 6px;font-size:12.5px;cursor:pointer;display:flex;gap:6px;align-items:center;justify-content:center}
 .btn:hover{border-color:var(--line2);background:var(--bg2)}
@@ -137,16 +131,6 @@ dl.facts dd{margin:0;font-size:13px;color:var(--tx)}
 .howto{display:grid;gap:8px;margin:0;padding:0;list-style:none}
 .howto li{display:grid;grid-template-columns:22px 1fr;gap:8px;color:#cfd9de;font-size:13px}
 .howto kbd{font:11px var(--mono);background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:0 4px;color:var(--tx)}
-.syslist{display:grid;gap:10px}
-.syslist div{display:grid;grid-template-columns:10px 1fr;gap:10px;font-size:12.5px;color:var(--mut)}
-.syslist b{color:var(--tx);font-weight:500}
-.syslist .sw{width:10px;height:10px;margin-top:4px;border-radius:50%}
-details.about{border-top:1px solid var(--line);padding-top:12px}
-details.about summary{cursor:pointer;font-size:12.5px;color:var(--tx);font-weight:500}
-details.about p,details.about li{font-size:12.5px;color:var(--mut);line-height:1.55}
-details.about ul{padding-left:18px;margin:6px 0}
-details.about a{color:var(--acc)}
-
 /* ---------- etiqueta 3D y tooltip */
 #labelLayer{position:fixed;inset:0;pointer-events:none;z-index:3}
 #labelLayer svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -164,24 +148,17 @@ details.about a{color:var(--acc)}
 #loader .bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
 #err{color:#ff9b8a;font-size:12px;margin-top:8px}
 
-.credit{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);font-size:10.5px;color:var(--dim);z-index:2;text-align:center;white-space:nowrap}
-.credit a{color:var(--mut)}
-
 /* ---------- móvil */
 .tabs{display:none}
 @media (max-width: 900px){
   .top{flex-direction:column;gap:8px}
-  .brand h1{font-size:21px}
-  .brand p{display:none}
   .views{margin-left:0;max-width:100%;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;padding-bottom:2px}
   .views::-webkit-scrollbar{display:none}
   .views .chipbtn{padding:5px 10px;font-size:11.5px}
   .panel{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 56px);left:10px!important;right:10px!important;width:auto!important;max-height:44vh;border-radius:14px}
-  .panel:not(.show){display:none}
   .tabs{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:6;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .tabs button{background:none;border:0;border-radius:999px;padding:7px 16px;font-size:13px;color:var(--mut);cursor:pointer}
   .tabs button[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink)}
-  .credit{display:none}
   #loader{bottom:70px;min-width:0;width:calc(100% - 52px)}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -193,10 +170,7 @@ details.about a{color:var(--acc)}
 <div id="tip"></div>
 
 <header class="top">
-  <div class="brand">
-    <h1 data-i18n-html="brand">Anatomía <em>en capas</em></h1>
-    <p id="stats">Atlas 3D del cuerpo humano · varón adulto · datos BodyParts3D</p>
-  </div>
+  <button id="filters-toggle" class="chipbtn filter-toggle" type="button" aria-label="Mostrar filtros" aria-expanded="false" title="Mostrar filtros" data-i18n-attr="aria-label:showFilters;title:showFilters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2m0 14.6v2.2M2.5 12h2.2m14.6 0h2.2M5.28 5.28l1.56 1.56m10.32 10.32 1.56 1.56m0-13.44-1.56 1.56M6.84 17.16l-1.56 1.56"/></svg></button>
   <nav class="views" aria-label="Vistas" data-i18n-attr="aria-label:views">
     <button class="chipbtn" data-view="front" data-i18n="front">Anterior</button>
     <button class="chipbtn" data-view="back" data-i18n="back">Posterior</button>
@@ -209,7 +183,7 @@ details.about a{color:var(--acc)}
   </nav>
 </header>
 
-<aside class="panel show" id="left" aria-label="Capas y sistemas" data-i18n-attr="aria-label:panelLayers">
+<aside class="panel" id="left" aria-label="Capas y sistemas" data-i18n-attr="aria-label:panelLayers">
   <div class="phead">
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -237,12 +211,10 @@ details.about a{color:var(--acc)}
 
 <div class="tabs" role="group" aria-label="Paneles" data-i18n-attr="aria-label:tabs">
   <button data-tab="none" aria-pressed="true" data-i18n="tabModel">Modelo</button>
-  <button data-tab="left" aria-pressed="false" data-i18n="tabLayers">Capas</button>
   <button data-tab="right" aria-pressed="false" data-i18n="tabCard">Ficha</button>
 </div>
 
 <div id="loader"><div class="lt"><span id="ltxt" data-i18n="loading">Cargando modelo anatómico…</span><span id="lpct">0 %</span></div><div class="bar"><i id="lbar"></i></div><div id="err" hidden></div></div>
-<div class="credit" data-i18n-html="credit">Modelo 3D: <a href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noopener">BodyParts3D</a> © DBCLS · <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.es" target="_blank" rel="noopener">CC BY-SA 2.1 JP</a> · adaptación CC BY-SA 4.0 · simplificado para web · uso educativo, no clínico · <a href="https://github.com/niuxito/human-body" target="_blank" rel="noopener">código en GitHub</a></div>
 <script src="data/anatomia.js"></script>
 <script src="models/esq.js"></script>
 <script src="models/mus.js"></script>

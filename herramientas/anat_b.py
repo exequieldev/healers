@@ -14,8 +14,7 @@ M("frontalis", "Músculo frontal (vientre frontal del occipitofrontal)", G, "Apo
 M("occipitalis", "Músculo occipital (vientre occipital del occipitofrontal)", G, "Línea nucal suprema del occipital y mastoides", "Aponeurosis epicraneal", "Tracciona el cuero cabelludo hacia atrás", VII + ", ramo auricular posterior")
 M("temporoparietalis", "Músculo temporoparietal", G, "Fascia temporal por encima del pabellón auricular", "Borde lateral de la aponeurosis epicraneal", "Tensa el cuero cabelludo y eleva el pabellón auricular", VII + ", ramos temporales")
 add("aponeurosis of epicranius", "Aponeurosis epicraneal (galea aponeurótica)", "mus", G,
-    "Lámina tendinosa resistente que cubre la bóveda craneal y une los vientres frontal y occipital del músculo occipitofrontal. Está firmemente unida a la piel del cuero cabelludo.",
-    [["Tipo", "Tejido conectivo denso (aponeurosis)"]])
+    "Lámina tendinosa resistente que cubre la bóveda craneal y une los vientres frontal y occipital del músculo occipitofrontal. Está firmemente unida a la piel del cuero cabelludo.")
 M("orbital part of orbicularis oculi", "Músculo orbicular del ojo — porción orbitaria", G, "Parte nasal del hueso frontal, apófisis frontal del maxilar y ligamento palpebral medial", "Fibras circulares que rodean la órbita y vuelven a su origen", "Cierra los párpados con fuerza (guiño forzado)", VII + ", ramos temporales y cigomáticos")
 M("palpebral part of orbicularis oculi", "Músculo orbicular del ojo — porción palpebral", G, "Ligamento palpebral medial", "Rafe palpebral lateral", "Cierra los párpados suavemente (parpadeo y sueño)", VII + ", ramos temporales y cigomáticos")
 M("corrugator supercilii", "Músculo corrugador superciliar", G, "Extremo medial del arco superciliar", "Piel de la mitad de la ceja", "Tracciona la ceja hacia abajo y adentro (fruncir el ceño)", VII + ", ramos temporales")

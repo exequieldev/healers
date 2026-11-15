@@ -196,7 +196,6 @@ function applyStatic(){
   document.querySelectorAll('[data-i18n-attr]').forEach(el => el.dataset.i18nAttr.split(';').forEach(p => { const [a, k] = p.split(':'); el.setAttribute(a, t(k)); }));
   const next = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
   $('#lang').textContent = next.toUpperCase(); $('#lang').title = LANG_NAMES[next];
-  if (DATA){ const nConc = new Set(DATA.parts.map(p => p.c)).size; $('#stats').textContent = t('stats', DATA.parts.length, nConc, DATA.systems.length); }
 }
 async function setLang(l){
   try { await loadOverlay(l); } catch (e) { console.warn('Sin traducción para', l); return; }
@@ -296,22 +295,15 @@ function renderInfo(){
         <li><span>③</span><span>${t('how3')}</span></li>
         <li><span>④</span><span>${t('how4')}</span></li>
       </ul>
-      <div class="eyebrow" style="margin-top:6px">${t('systemsIncluded')}</div>
-      <div class="syslist">${DATA.systems.map(s => `<div><span class="sw" style="background:${s.c}"></span><span><b>${esc(s.n)}.</b> ${esc(s.d)}</span></div>`).join('')}</div>
-      <details class="about"><summary>${t('aboutTitle')}</summary>
-        ${t('about')}
-      </details></div>`;
+      </div>`;
     return;
   }
-  const P = PARTS[selected], c = CONC[P.p.c], s = SYS[c.s];
-  box.innerHTML = `<div class="tags"><span class="tag"><span class="sw" style="background:${s.c}"></span>${esc(s.n)}</span>${P.p.sd ? `<span class="tag">${SIDE[P.p.sd]}</span>` : ''}</div>
-    <h2>${esc(c.n)}</h2>
-    <div class="grpname">${esc(c.g)}</div>
+  const P = PARTS[selected], c = CONC[P.p.c];
+  const facts = c.f.filter(([key]) => !['Origen', 'Inserción', 'Acción', 'Inervación', 'Origin', 'Insertion', 'Action', 'Innervation'].includes(key));
+  box.innerHTML = `<h2>${esc(c.n)}</h2>
     <div class="actions"><button class="btn primary" data-act="focus">${t('focus')}</button><button class="btn" data-act="iso">${isolated ? t('showAll') : t('isolate')}</button><button class="btn" data-act="hide">${t('hide')}</button></div>
-    <p class="desc">${esc(c.d)}</p>
-    ${c.f.length ? `<dl class="facts">${c.f.map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
-    <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer"><input type="checkbox" id="focusmode" ${focusMode?'checked':''} style="accent-color:var(--acc)"> ${t('dimRest')}</label>
-    <div class="src">${t('source', esc(selected), esc(P.p.en))}</div>`;
+    ${facts.length ? `<dl class="facts">${facts.map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+    <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer"><input type="checkbox" id="focusmode" ${focusMode?'checked':''} style="accent-color:var(--acc)"> ${t('dimRest')}</label>`;
   box.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ({focus:focusSel, iso:toggleIsolate, hide:hideSel})[b.dataset.act]()));
   box.querySelector('#focusmode').addEventListener('change', e => { focusMode = e.target.checked; applyOpacity(); });
 }
@@ -362,10 +354,17 @@ let fly = null;
 function flyTo(pos, target, ms = 750){
   fly = {p0:camera.position.clone(), t0:controls.target.clone(), p1:pos, t1:target, s:performance.now(), ms: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : ms};
 }
-const VIEWS = {front:[0,0.95,3.3], back:[0,0.95,-3.3], right:[-3.3,0.95,0], left:[3.3,0.95,0], top:[0,4.2,0.35]};
-function setView(v){ const t = new THREE.Vector3(0, v==='top'?0.9:0.88, 0); flyTo(new THREE.Vector3(...VIEWS[v]), t); }
+const INITIAL_CAMERA_TARGET = new THREE.Vector3(0, 1.35, 0);
+const INITIAL_CAMERA_POSITION = new THREE.Vector3(0.51, 1.49, 1.07);
+const INITIAL_CAMERA_DISTANCE = INITIAL_CAMERA_POSITION.distanceTo(INITIAL_CAMERA_TARGET);
+const VIEWS = {front:[0,0,1], back:[0,0,-1], right:[-1,0,0], left:[1,0,0], top:[0,1,0.08]};
+function setView(v){
+  const target = INITIAL_CAMERA_TARGET.clone();
+  const direction = new THREE.Vector3(...VIEWS[v]).normalize();
+  flyTo(target.clone().add(direction.multiplyScalar(INITIAL_CAMERA_DISTANCE)), target);
+}
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
-camera.position.set(0.9, 1.15, 3.1); controls.target.set(0, 0.9, 0); controls.update();
+camera.position.copy(INITIAL_CAMERA_POSITION); controls.target.copy(INITIAL_CAMERA_TARGET); controls.update();
 $('#spin').addEventListener('click', e => { controls.autoRotate = !controls.autoRotate; controls.autoRotateSpeed = 1.2; e.currentTarget.setAttribute('aria-pressed', controls.autoRotate); });
 $('#reset').addEventListener('click', () => {
   hiddenGroups.clear(); hiddenParts.clear(); isolated = null; focusMode = false;
@@ -418,9 +417,18 @@ addEventListener('keydown', e => {
 });
 
 // ---------------------------------------------------------------- pestañas móvil
+function setFilterPanel(open){
+  $('#left').classList.toggle('show', open);
+  const label = t(open ? 'hideFilters' : 'showFilters');
+  const button = $('#filters-toggle');
+  button.setAttribute('aria-expanded', String(open));
+  button.setAttribute('aria-label', label);
+  button.title = label;
+}
 function showTab(t){
   if (innerWidth > 900) return;
-  ['left','right'].forEach(k => $('#'+k).classList.toggle('show', k === t));
+  setFilterPanel(t === 'left');
+  $('#right').classList.toggle('show', t === 'right');
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
   fitView();
 }
@@ -437,9 +445,15 @@ function fitView(){
   camera.updateProjectionMatrix();
 }
 document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+$('#filters-toggle').addEventListener('click', () => {
+  const open = !$('#left').classList.contains('show');
+  if (open && innerWidth <= 900) showTab('none');
+  setFilterPanel(open);
+  if (innerWidth <= 900) fitView();
+});
 function layout(){
-  if (innerWidth > 900){ $('#left').classList.add('show'); $('#right').classList.add('show'); }
-  else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab('left');
+  if (innerWidth > 900){ $('#right').classList.add('show'); }
+  else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab('none');
   else showTab(document.querySelector('[data-tab][aria-pressed="true"]').dataset.tab);
 }
 layout(); fitView();
