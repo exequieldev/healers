@@ -35325,7 +35325,7 @@ void main() {
       { id: "spo2", labelKey: "metricSpo2", value: "96", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "37.1", unit: "\xB0C" }
     ] },
-    { initials: "BE", name: "B. EITHER", activityKey: "activityBio", statusType: "caution", metrics: [
+    { initials: "BE", name: "B. EITNER", activityKey: "activityBio", statusType: "caution", metrics: [
       { id: "heartRate", labelKey: "metricHeartRate", value: null, unit: "BPM", quality: "stale", lastValidAt: "2026-11-15T10:45:00-03:00" },
       { id: "spo2", labelKey: "metricSpo2", value: "97", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "36.7", unit: "\xB0C" }
