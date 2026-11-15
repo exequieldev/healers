@@ -213,9 +213,9 @@ $('#lang').addEventListener('click', () => setLang(LANGS[(LANGS.indexOf(lang) + 
 
 const CREW = [
   {initials:'AC', name:'A. CHEN', activity:'En cabina // Módulo Harmony', status:'NORMAL', statusType:'normal', heartRate:'72 BPM', spo2:'98 %', temp:'36.8 °C'},
-  {initials:'LG', name:'L. GARCÍA', activity:'Post-EVA // Esclusa Quest', status:'AMARILLO / PRECAUCIÓN', statusType:'caution', heartRate:'98 BPM', spo2:'96 %', temp:'37.1 °C'},
-  {initials:'LA', name:'L. ALEXA', activity:'Sin camiseta Bio-Monitor', status:'AMARILLO (SENSOR ***)', statusType:'caution', heartRate:'***', spo2:'97 %', temp:'36.7 °C'},
-  {initials:'HG', name:'H. GARCÍA', activity:'Turno nocturno // Fatiga leve', status:'AMARILLO / PRECAUCIÓN', statusType:'caution', heartRate:'66 BPM', spo2:'99 %', temp:'36.5 °C'},
+  {initials:'LG', name:'L. GARCÍA', activity:'Post-EVA // Esclusa Quest', status:'Peligro', statusType:'danger', heartRate:'98 BPM', spo2:'96 %', temp:'37.1 °C'},
+  {initials:'LA', name:'L. ALEXA', activity:'Sin camiseta Bio-Monitor', status:'PRECAUCIÓN (SENSOR ***)', statusType:'caution', heartRate:'***', spo2:'97 %', temp:'36.7 °C'},
+  {initials:'HG', name:'H. GARCÍA', activity:'Turno nocturno // Fatiga leve', status:'PRECAUCIÓN', statusType:'caution', heartRate:'66 BPM', spo2:'99 %', temp:'36.5 °C'},
 ];
 let activeCrew = 'AC';
 function renderCrew(){
