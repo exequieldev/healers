@@ -598,7 +598,7 @@ function triageTexts(values){ return values[lang] || values.es; }
 function triageQuestionView(question, index, total, answerLabels, progress){
   return `<div class="triage-count"><span>${t('triageQuestionLabel', index + 1, total)}</span><strong>${t('triagePositiveCount', triageState.positiveRedFlags.length)}</strong></div>
     <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><i style="width:${progress}%"></i></div>
-    <div class="triage-question"><span class="triage-step">${esc(t('triagePhase1'))} · ${index + 1}</span><p>${esc(question)}</p></div>
+    <div class="triage-question"><p>${esc(question)}</p></div>
     <div class="triage-answers">
       <button class="triage-answer" type="button" data-triage-answer="yes">${esc(answerLabels[0])}</button>
       <button class="triage-answer" type="button" data-triage-answer="no">${esc(answerLabels[1])}</button>
@@ -613,7 +613,6 @@ function renderTriagePanel(){
     box.innerHTML = `<section class="triage">
       <div class="triage-head"><h2>${t('triageTitle')}</h2>
       <p>${t(selected ? 'triageHeadRequired' : 'triageIntro')}</p></div>
-      <p class="triage-disclaimer">${t('triageDisclaimer')}</p>
     </section>`;
     return;
   }
@@ -639,7 +638,7 @@ function renderTriagePanel(){
     const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
     const index = triageState.redFlagIndex;
     const percent = Math.round(((index + 1) / questions.length) * 100);
-    content = `<div class="triage-head"><span class="triage-step">${t('triagePhase1')}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+    content = `<div class="triage-head"><span class="triage-step">${t('triagePhase1')}</span></div>
       ${triageQuestionView(questions[index], index, questions.length, [t('triageYes'), t('triageNo')], percent)}
       <div class="triage-nav"><button type="button" data-triage-back>${t('triagePrevious')}</button><span class="triage-note">${t('triageEmergencyThreshold')}</span></div>`;
   } else if (triageState.step === 'emergency'){
@@ -649,8 +648,7 @@ function renderTriagePanel(){
         <span aria-hidden="true">${checked ? '✓' : index + 1}</span><span>${esc(text)}</span>
       </button>`;
     }).join('');
-    content = `<div class="triage-alert"><span class="triage-step">${t('triageEmergencyHeading')}</span>
-        <h2>${t('triageEmergencyHeading')}</h2><p>${t('triageEmergencyBody')}</p>
+    content = `<div class="triage-alert"><h2>${t('triageEmergencyHeading')}</h2><p>${t('triageEmergencyBody')}</p>
       </div>
       <div><p><strong>${t('triagePositiveCount', triageState.positiveRedFlags.length)}</strong></p>
         <ul class="triage-summary">${triageState.positiveRedFlags.map(text => `<li>${esc(text)}</li>`).join('')}</ul>
@@ -665,10 +663,10 @@ function renderTriagePanel(){
     const answers = triageState.region === 'temporal' && index === 6
       ? [t('triageEpisodes'), t('triageContinuous')]
       : [t('triageYes'), t('triageNo')];
-    content = `<div class="triage-head"><span class="triage-step">${t('triagePhase2')}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+    content = `<div class="triage-head"><span class="triage-step">${t('triagePhase2')}</span></div>
       <div class="triage-count"><span>${t('triageQuestionLabel', index + 1, questions.length)}</span><strong>${esc(region.code)}</strong></div>
       <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
-      <div class="triage-question"><span class="triage-step">${t('triagePhase2')} · Q${index + 1}</span><p>${esc(question)}</p></div>
+      <div class="triage-question"><p>${esc(question)}</p></div>
       <div class="triage-answers"><button class="triage-answer" type="button" data-triage-answer="yes">${esc(answers[0])}</button>
         <button class="triage-answer" type="button" data-triage-answer="no">${esc(answers[1])}</button></div>
       <div class="triage-nav"><button type="button" data-triage-back>${t('triagePrevious')}</button><span class="triage-note">${t('triageChooseRegionHint')}</span></div>`;
@@ -688,7 +686,7 @@ function renderTriagePanel(){
   const panelHeading = region ? triageTexts(region.title) : t('triageTitle');
   box.innerHTML = `<section class="triage">
     <div class="triage-head"><h2>${esc(panelHeading)}</h2></div>
-    <p class="triage-disclaimer">${t('triageDisclaimer')}</p>${content}
+    ${content}
   </section>`;
   box.querySelectorAll('[data-triage-region]').forEach(button => button.addEventListener('click', () => {
     triageState = createTriageState();

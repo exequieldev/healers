@@ -34909,7 +34909,6 @@ void main() {
       triageTitle: "Evaluaci\xF3n guiada de cefalea",
       triageIntro: "Selecciona una estructura de la cabeza en el modelo 3D para iniciar.",
       triageHeadRequired: "La evaluaci\xF3n se habilita al seleccionar una estructura craneal o de la cabeza.",
-      triageDisclaimer: "Simulaci\xF3n educativa: no constituye un diagn\xF3stico ni sustituye la evaluaci\xF3n de personal m\xE9dico.",
       triageLocationStep: "PASO 1 \xB7 LOCALIZACI\xD3N ANAT\xD3MICA",
       triageChooseRegion: "\xBFD\xF3nde se localiza el dolor de cabeza?",
       triageChooseRegionHint: "Seleccione la regi\xF3n craneal principal afectada para iniciar la evaluaci\xF3n guiada.",
@@ -35005,7 +35004,6 @@ void main() {
       triageTitle: "Guided headache assessment",
       triageIntro: "Select a head structure in the 3D model to begin.",
       triageHeadRequired: "The assessment is enabled when a skull or head structure is selected.",
-      triageDisclaimer: "Educational simulation: this is not a diagnosis and does not replace evaluation by medical personnel.",
       triageLocationStep: "STEP 1 \xB7 ANATOMICAL LOCATION",
       triageChooseRegion: "Where is the headache located?",
       triageChooseRegionHint: "Select the main affected cranial region to start the guided assessment.",
@@ -35933,7 +35931,7 @@ void main() {
   function triageQuestionView(question, index, total, answerLabels, progress2) {
     return `<div class="triage-count"><span>${t("triageQuestionLabel", index + 1, total)}</span><strong>${t("triagePositiveCount", triageState.positiveRedFlags.length)}</strong></div>
     <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress2}"><i style="width:${progress2}%"></i></div>
-    <div class="triage-question"><span class="triage-step">${esc(t("triagePhase1"))} \xB7 ${index + 1}</span><p>${esc(question)}</p></div>
+    <div class="triage-question"><p>${esc(question)}</p></div>
     <div class="triage-answers">
       <button class="triage-answer" type="button" data-triage-answer="yes">${esc(answerLabels[0])}</button>
       <button class="triage-answer" type="button" data-triage-answer="no">${esc(answerLabels[1])}</button>
@@ -35948,7 +35946,6 @@ void main() {
       box.innerHTML = `<section class="triage">
       <div class="triage-head"><h2>${t("triageTitle")}</h2>
       <p>${t(selected ? "triageHeadRequired" : "triageIntro")}</p></div>
-      <p class="triage-disclaimer">${t("triageDisclaimer")}</p>
     </section>`;
       return;
     }
@@ -35972,7 +35969,7 @@ void main() {
       const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
       const index = triageState.redFlagIndex;
       const percent = Math.round((index + 1) / questions.length * 100);
-      content = `<div class="triage-head"><span class="triage-step">${t("triagePhase1")}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+      content = `<div class="triage-head"><span class="triage-step">${t("triagePhase1")}</span></div>
       ${triageQuestionView(questions[index], index, questions.length, [t("triageYes"), t("triageNo")], percent)}
       <div class="triage-nav"><button type="button" data-triage-back>${t("triagePrevious")}</button><span class="triage-note">${t("triageEmergencyThreshold")}</span></div>`;
     } else if (triageState.step === "emergency") {
@@ -35982,8 +35979,7 @@ void main() {
         <span aria-hidden="true">${checked ? "\u2713" : index + 1}</span><span>${esc(text)}</span>
       </button>`;
       }).join("");
-      content = `<div class="triage-alert"><span class="triage-step">${t("triageEmergencyHeading")}</span>
-        <h2>${t("triageEmergencyHeading")}</h2><p>${t("triageEmergencyBody")}</p>
+      content = `<div class="triage-alert"><h2>${t("triageEmergencyHeading")}</h2><p>${t("triageEmergencyBody")}</p>
       </div>
       <div><p><strong>${t("triagePositiveCount", triageState.positiveRedFlags.length)}</strong></p>
         <ul class="triage-summary">${triageState.positiveRedFlags.map((text) => `<li>${esc(text)}</li>`).join("")}</ul>
@@ -35996,10 +35992,10 @@ void main() {
       const question = questions[index];
       const percent = Math.round((index + 1) / questions.length * 100);
       const answers = triageState.region === "temporal" && index === 6 ? [t("triageEpisodes"), t("triageContinuous")] : [t("triageYes"), t("triageNo")];
-      content = `<div class="triage-head"><span class="triage-step">${t("triagePhase2")}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+      content = `<div class="triage-head"><span class="triage-step">${t("triagePhase2")}</span></div>
       <div class="triage-count"><span>${t("triageQuestionLabel", index + 1, questions.length)}</span><strong>${esc(region.code)}</strong></div>
       <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
-      <div class="triage-question"><span class="triage-step">${t("triagePhase2")} \xB7 Q${index + 1}</span><p>${esc(question)}</p></div>
+      <div class="triage-question"><p>${esc(question)}</p></div>
       <div class="triage-answers"><button class="triage-answer" type="button" data-triage-answer="yes">${esc(answers[0])}</button>
         <button class="triage-answer" type="button" data-triage-answer="no">${esc(answers[1])}</button></div>
       <div class="triage-nav"><button type="button" data-triage-back>${t("triagePrevious")}</button><span class="triage-note">${t("triageChooseRegionHint")}</span></div>`;
@@ -36018,7 +36014,7 @@ void main() {
     const panelHeading = region ? triageTexts(region.title) : t("triageTitle");
     box.innerHTML = `<section class="triage">
     <div class="triage-head"><h2>${esc(panelHeading)}</h2></div>
-    <p class="triage-disclaimer">${t("triageDisclaimer")}</p>${content}
+    ${content}
   </section>`;
     box.querySelectorAll("[data-triage-region]").forEach((button) => button.addEventListener("click", () => {
       triageState = createTriageState();
