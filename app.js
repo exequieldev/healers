@@ -36070,7 +36070,7 @@ void main() {
         const isComplete = triageState.completedChecklist.has(step);
         content += `<div class="triage-head"><span class="triage-step">${t("triageEmergencyStep", step + 1, actions.length)}</span>
           <h2>${esc(actions[step])}</h2></div>
-        <ul class="triage-instructions">${details.map((detail) => `<li>${esc(detail)}</li>`).join("")}</ul>
+        <ol class="triage-instructions">${details.map((detail) => `<li>${esc(detail)}</li>`).join("")}</ol>
         <div class="triage-detail-actions">
           <button class="triage-action" type="button" data-triage-actions-back>${t("triageBackToActions")}</button>
           <button class="triage-action" type="button" data-triage-complete aria-pressed="${isComplete}">${isComplete ? t("triageMarkedComplete") : t("triageMarkComplete")}</button>
