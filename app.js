@@ -34858,6 +34858,7 @@ void main() {
       noSignal: "SIN SE\xD1AL",
       lastValidReading: (value) => `\xDAlt. lectura v\xE1lida: ${value}`,
       telemetryTitle: "Telemetr\xEDa continua",
+      simulationLabel: "SIMULACI\xD3N",
       biometricsHeading: "Signos vitales \xB7 Bio-monitor",
       baselineUnavailable: "Base no disponible",
       notAvailable: "No disponible",
@@ -34930,6 +34931,7 @@ void main() {
       noSignal: "NO SIGNAL",
       lastValidReading: (value) => `Last valid: ${value}`,
       telemetryTitle: "Continuous telemetry",
+      simulationLabel: "SIMULATION",
       biometricsHeading: "Vital signs \xB7 Bio-monitor",
       baselineUnavailable: "Baseline unavailable",
       notAvailable: "Unavailable",
@@ -35337,6 +35339,14 @@ void main() {
     { id: "temperature", labelKey: "metricTemperature", unit: "\xB0C" },
     { id: "sleep", labelKey: "metricSleep", unit: "h" }
   ];
+  var SIMULATION_PROFILES = {
+    heartRate: { offsets: [0, 1, 2, 1, 0, -1, -2, -1], decimals: 0 },
+    spo2: { offsets: [0, 0, -1, 0, 1, 0, 0, -1], decimals: 0 },
+    temperature: { offsets: [0, 0, 0.1, 0.1, 0, -0.1, -0.1, 0], decimals: 1 }
+  };
+  var SIMULATION_INTERVAL = 4e3;
+  var ECG_PATH = "M0 16H9L13 14L17 18L22 16H31L35 13L39 17L43 2L48 29L53 12L57 16H67L72 14L76 17L80 15L85 16H95L99 13L103 17L107 15L111 16H120";
+  var simulationStep = 0;
   function formatCrewTimestamp(value) {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetr\xEDa inv\xE1lida: ${value}`);
@@ -35358,12 +35368,34 @@ void main() {
     });
   }
   var crewMetricObserver = new ResizeObserver((entries) => entries.forEach(({ target }) => fitCrewMetrics(target)));
-  function createTelemetryCard(labelKey, reading, unit) {
+  function createECGTrace(reading) {
+    const window2 = document.createElement("div");
+    window2.className = "ecg-window";
+    window2.setAttribute("aria-hidden", "true");
+    const track = document.createElement("div");
+    track.className = "ecg-track";
+    track.style.setProperty("--ecg-duration", `${60 / Number(reading.value)}s`);
+    for (let i = 0; i < 2; i++) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 120 32");
+      svg.setAttribute("preserveAspectRatio", "none");
+      svg.setAttribute("aria-hidden", "true");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("class", "ecg-wave");
+      path.setAttribute("d", ECG_PATH);
+      svg.append(path);
+      track.append(svg);
+    }
+    window2.append(track);
+    return window2;
+  }
+  function createTelemetryCard(definition, reading) {
     const card = document.createElement("article");
     card.className = "telemetry-card";
+    card.dataset.metricId = definition.id;
     const label = document.createElement("span");
     label.className = "telemetry-label";
-    label.textContent = t(labelKey);
+    label.textContent = t(definition.labelKey);
     const value = document.createElement("span");
     value.className = "telemetry-value";
     const note = document.createElement("span");
@@ -35383,9 +35415,14 @@ void main() {
     }
     const unitLabel = document.createElement("span");
     unitLabel.className = "telemetry-unit";
-    unitLabel.textContent = unit;
+    unitLabel.textContent = definition.unit;
     value.append(unitLabel);
-    card.append(label, value, note);
+    card.append(label, value);
+    if (definition.id === "heartRate" && reading?.quality !== "stale" && reading?.value != null) {
+      card.classList.add("telemetry-card--heart-rate");
+      card.append(createECGTrace(reading));
+    }
+    card.append(note);
     return card;
   }
   function renderTelemetry() {
@@ -35394,7 +35431,7 @@ void main() {
     $("#telemetry-subject").textContent = member.name;
     const metrics = new Map(member.metrics.map((metric) => [metric.id, metric]));
     const vitals = $("#telemetry-vitals");
-    vitals.replaceChildren(...TELEMETRY_VITALS.map((definition) => createTelemetryCard(definition.labelKey, metrics.get(definition.id), definition.unit)));
+    vitals.replaceChildren(...TELEMETRY_VITALS.map((definition) => createTelemetryCard(definition, metrics.get(definition.id))));
     positionTelemetryInfo();
   }
   function positionTelemetryInfo() {
@@ -35415,6 +35452,7 @@ void main() {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "crew-card";
+      card.dataset.crew = member.initials;
       card.dataset.status = member.statusType;
       card.setAttribute("aria-pressed", String(member.initials === activeCrew));
       const top = document.createElement("span");
@@ -35451,6 +35489,7 @@ void main() {
       member.metrics.forEach((metricData) => {
         const metric = document.createElement("span");
         metric.className = "crew-metric";
+        metric.dataset.metricId = metricData.id;
         const metricLabel = document.createElement("span");
         metricLabel.className = "crew-metric-label";
         metricLabel.textContent = t(metricData.labelKey);
@@ -35483,6 +35522,36 @@ void main() {
   }
   renderCrew();
   renderTelemetry();
+  function advanceSimulation() {
+    if (document.hidden) return;
+    simulationStep++;
+    CREW.forEach((member) => {
+      const crewCard = document.querySelector(`.crew-card[data-crew="${member.initials}"]`);
+      member.metrics.forEach((metric) => {
+        const profile = SIMULATION_PROFILES[metric.id];
+        if (!profile || metric.quality === "stale" || metric.value == null) return;
+        metric.baseValue ?? (metric.baseValue = Number(metric.value));
+        metric.value = (metric.baseValue + profile.offsets[simulationStep % profile.offsets.length]).toFixed(profile.decimals);
+        const text = `${metric.value} ${metric.unit}`;
+        const crewValue = crewCard?.querySelector(`.crew-metric[data-metric-id="${metric.id}"] .crew-metric-value`);
+        if (crewValue) {
+          crewValue.textContent = text;
+          crewValue.dataset.fullValue = text;
+          crewValue.dataset.overflowValue = overflowMetricValue(text);
+        }
+        if (member.initials === activeCrew) {
+          const telemetryCard = $("#telemetry-vitals").querySelector(`.telemetry-card[data-metric-id="${metric.id}"]`);
+          const value = telemetryCard?.querySelector(".telemetry-value");
+          if (value?.firstChild?.nodeType === Node.TEXT_NODE) value.firstChild.textContent = metric.value;
+          if (metric.id === "heartRate") {
+            telemetryCard?.querySelector(".ecg-track")?.style.setProperty("--ecg-duration", `${60 / Number(metric.value)}s`);
+          }
+        }
+      });
+      if (crewCard) fitCrewMetrics(crewCard);
+    });
+  }
+  setInterval(advanceSimulation, SIMULATION_INTERVAL);
   var CHEV = '<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>';
   function buildSystemsUI() {
     const box = $("#systems");
