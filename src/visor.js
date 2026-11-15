@@ -441,7 +441,7 @@ function renderCrew(){
     card.addEventListener('click', () => {
       activeCrew = member.initials;
       if (selected && isHeadPart(selected)){
-        triageState = createTriageState();
+        resetTriageForSelectedPart();
         renderTriagePanel();
       }
       list.querySelectorAll('.crew-card').forEach(button => {
@@ -594,6 +594,23 @@ function isHeadPart(id){
   const group = norm(concept.g);
   return group === 'craneo' || group.startsWith('cabeza:') || group === 'dorso: musculos suboccipitales';
 }
+function triageRegionForHeadPart(id){
+  const P = PARTS[id], concept = P && BASE_CONC[P.p.c];
+  if (!concept) return null;
+  const name = norm(concept.n), group = norm(concept.g);
+  if (name.includes('occipital') || group.includes('suboccipital')) return 'occipital';
+  if (/temporal|parietal|masetero|pterigoid|mandibula|esfenoides/.test(name) || group.includes('masticacion')) return 'temporal';
+  if (group === 'craneo' || group.startsWith('cabeza:')) return 'frontal';
+  return null;
+}
+function resetTriageForSelectedPart(){
+  triageState = createTriageState();
+  const region = selected && isHeadPart(selected) ? triageRegionForHeadPart(selected) : null;
+  if (region){
+    triageState.region = region;
+    triageState.step = 'redFlags';
+  }
+}
 function triageTexts(values){ return values[lang] || values.es; }
 function triageQuestionView(question, index, total, answerLabels, progress){
   return `<div class="triage-count"><span>${t('triageQuestionLabel', index + 1, total)}</span><strong>${t('triagePositiveCount', triageState.positiveRedFlags.length)}</strong></div>
@@ -618,7 +635,7 @@ function renderTriagePanel(){
   }
   if (triagePartId !== selected){
     triagePartId = selected;
-    triageState = createTriageState();
+    resetTriageForSelectedPart();
   }
 
   const region = triageState.region && TRIAGE_PROTOCOL.regions[triageState.region];
@@ -747,7 +764,7 @@ function renderTriagePanel(){
     renderTriagePanel();
   }));
   box.querySelector('[data-triage-reset]')?.addEventListener('click', () => {
-    triageState = createTriageState();
+    resetTriageForSelectedPart();
     renderTriagePanel();
   });
 }

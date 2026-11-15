@@ -34845,7 +34845,7 @@ void main() {
       crewActive: "ACTIVO",
       statusNormal: "NORMAL",
       statusCaution: "PRECAUCI\xD3N",
-      statusWarning: "ADVERTENCIA",
+      statusWarning: "ALERTA ROJA",
       activityCabin: "En cabina \xB7 M\xF3dulo Harmony",
       activityEva: "Post-EVA \xB7 Esclusa Quest",
       activityBio: "Actividad de ejemplo \xB7 Bio-monitor",
@@ -34940,7 +34940,7 @@ void main() {
       crewActive: "ACTIVE",
       statusNormal: "NORMAL",
       statusCaution: "CAUTION",
-      statusWarning: "WARNING",
+      statusWarning: "RED ALERT",
       activityCabin: "In cabin \xB7 Harmony module",
       activityEva: "Post-EVA \xB7 Quest airlock",
       activityBio: "Sample activity \xB7 Bio-monitor",
@@ -35717,7 +35717,7 @@ void main() {
       card.addEventListener("click", () => {
         activeCrew = member.initials;
         if (selected && isHeadPart(selected)) {
-          triageState = createTriageState();
+          resetTriageForSelectedPart();
           renderTriagePanel();
         }
         list.querySelectorAll(".crew-card").forEach((button) => {
@@ -35925,6 +35925,23 @@ void main() {
     const group = norm(concept.g);
     return group === "craneo" || group.startsWith("cabeza:") || group === "dorso: musculos suboccipitales";
   }
+  function triageRegionForHeadPart(id) {
+    const P = PARTS[id], concept = P && BASE_CONC[P.p.c];
+    if (!concept) return null;
+    const name = norm(concept.n), group = norm(concept.g);
+    if (name.includes("occipital") || group.includes("suboccipital")) return "occipital";
+    if (/temporal|parietal|masetero|pterigoid|mandibula|esfenoides/.test(name) || group.includes("masticacion")) return "temporal";
+    if (group === "craneo" || group.startsWith("cabeza:")) return "frontal";
+    return null;
+  }
+  function resetTriageForSelectedPart() {
+    triageState = createTriageState();
+    const region = selected && isHeadPart(selected) ? triageRegionForHeadPart(selected) : null;
+    if (region) {
+      triageState.region = region;
+      triageState.step = "redFlags";
+    }
+  }
   function triageTexts(values) {
     return values[lang] || values.es;
   }
@@ -35951,7 +35968,7 @@ void main() {
     }
     if (triagePartId !== selected) {
       triagePartId = selected;
-      triageState = createTriageState();
+      resetTriageForSelectedPart();
     }
     const region = triageState.region && TRIAGE_PROTOCOL.regions[triageState.region];
     let content = "";
@@ -36072,7 +36089,7 @@ void main() {
       renderTriagePanel();
     }));
     box.querySelector("[data-triage-reset]")?.addEventListener("click", () => {
-      triageState = createTriageState();
+      resetTriageForSelectedPart();
       renderTriagePanel();
     });
   }
