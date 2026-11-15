@@ -34839,6 +34839,22 @@ void main() {
   var STR = {
     es: {
       langLabel: "Idioma",
+      crewTitle: "Tripulaci\xF3n",
+      crewSelect: "Seleccionar tripulante",
+      crewSelectHint: "ELEGIR",
+      crewActive: "ACTIVO",
+      statusNormal: "NORMAL",
+      statusCaution: "PRECAUCI\xD3N",
+      statusWarning: "ADVERTENCIA",
+      activityCabin: "En cabina \xB7 M\xF3dulo Harmony",
+      activityEva: "Post-EVA \xB7 Esclusa Quest",
+      activityBio: "Actividad de ejemplo \xB7 Bio-monitor",
+      activityRest: "Turno nocturno \xB7 Fatiga leve",
+      metricHeartRate: "FC",
+      metricSpo2: "SpO\u2082",
+      metricTemperature: "TEMP",
+      noSignal: "SIN SE\xD1AL",
+      lastValidReading: (value) => `\xDAlt. lectura v\xE1lida: ${value}`,
       views: "Vistas",
       front: "Anterior",
       back: "Posterior",
@@ -34888,6 +34904,22 @@ void main() {
     },
     en: {
       langLabel: "Language",
+      crewTitle: "Crew",
+      crewSelect: "Select crew member",
+      crewSelectHint: "SELECT",
+      crewActive: "ACTIVE",
+      statusNormal: "NORMAL",
+      statusCaution: "CAUTION",
+      statusWarning: "WARNING",
+      activityCabin: "In cabin \xB7 Harmony module",
+      activityEva: "Post-EVA \xB7 Quest airlock",
+      activityBio: "Sample activity \xB7 Bio-monitor",
+      activityRest: "Night shift \xB7 Mild fatigue",
+      metricHeartRate: "HR",
+      metricSpo2: "SpO\u2082",
+      metricTemperature: "TEMP",
+      noSignal: "NO SIGNAL",
+      lastValidReading: (value) => `Last valid: ${value}`,
       views: "Views",
       front: "Anterior",
       back: "Posterior",
@@ -35235,6 +35267,7 @@ void main() {
     const openGrp = [...document.querySelectorAll(".grp.open")].map((el) => el.dataset.gid);
     localize();
     applyStatic();
+    renderCrew();
     buildSystemsUI();
     openSys.forEach((k) => {
       const el = document.querySelector(`.sys[data-sys="${k}"]`);
@@ -35255,14 +35288,58 @@ void main() {
   }
   $("#lang").addEventListener("click", () => setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]));
   var CREW = [
-    { initials: "AC", name: "A. CHEN", activity: "En cabina // M\xF3dulo Harmony", status: "NORMAL", statusType: "normal", heartRate: "72 BPM", spo2: "98 %", temp: "36.8 \xB0C" },
-    { initials: "LG", name: "L. GARC\xCDA", activity: "Post-EVA // Esclusa Quest", status: "Peligro", statusType: "danger", heartRate: "98 BPM", spo2: "96 %", temp: "37.1 \xB0C" },
-    { initials: "LA", name: "L. ALEXA", activity: "Sin camiseta Bio-Monitor", status: "PRECAUCI\xD3N (SENSOR ***)", statusType: "caution", heartRate: "***", spo2: "97 %", temp: "36.7 \xB0C" },
-    { initials: "HG", name: "H. GARC\xCDA", activity: "Turno nocturno // Fatiga leve", status: "PRECAUCI\xD3N", statusType: "caution", heartRate: "66 BPM", spo2: "99 %", temp: "36.5 \xB0C" }
+    { initials: "SP", name: "S. PERGHER", activityKey: "activityCabin", statusType: "normal", metrics: [
+      { labelKey: "metricHeartRate", value: "72", unit: "BPM" },
+      { labelKey: "metricSpo2", value: "98", unit: "%" },
+      { labelKey: "metricTemperature", value: "36.8", unit: "\xB0C" }
+    ] },
+    { initials: "LC", name: "L. CHILAVERT", activityKey: "activityEva", statusType: "warning", metrics: [
+      { labelKey: "metricHeartRate", value: "98", unit: "BPM" },
+      { labelKey: "metricSpo2", value: "96", unit: "%" },
+      { labelKey: "metricTemperature", value: "37.1", unit: "\xB0C" }
+    ] },
+    { initials: "BE", name: "B. EITHER", activityKey: "activityBio", statusType: "caution", metrics: [
+      { labelKey: "metricHeartRate", value: null, unit: "BPM", quality: "stale", lastValidAt: "2026-11-15T10:45:00-03:00" },
+      { labelKey: "metricSpo2", value: "97", unit: "%" },
+      { labelKey: "metricTemperature", value: "36.7", unit: "\xB0C" }
+    ] },
+    { initials: "LP", name: "L. PERGHER", activityKey: "activityRest", statusType: "caution", metrics: [
+      { labelKey: "metricHeartRate", value: "66", unit: "BPM" },
+      { labelKey: "metricSpo2", value: "99", unit: "%" },
+      { labelKey: "metricTemperature", value: "36.5", unit: "\xB0C" }
+    ] },
+    { initials: "ED", name: "E. DIAZ", activityKey: "activityCabin", statusType: "normal", metrics: [
+      { labelKey: "metricHeartRate", value: "74", unit: "BPM" },
+      { labelKey: "metricSpo2", value: "98", unit: "%" },
+      { labelKey: "metricTemperature", value: "36.6", unit: "\xB0C" }
+    ] }
   ];
-  var activeCrew = "AC";
+  var activeCrew = CREW[0].initials;
+  function formatCrewTimestamp(value) {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetr\xEDa inv\xE1lida: ${value}`);
+    const locale = lang === "es" ? "es-AR" : "en-US";
+    const datePart = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "2-digit" }).format(date);
+    const timePart = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
+    return `${datePart} ${timePart}`;
+  }
+  function overflowMetricValue(value) {
+    const match = /^([+-]?)(\d+)(\.\d+)?(\s.*)?$/.exec(value);
+    if (!match) return "***";
+    return `${match[1]}***${match[3] ? `.${"*".repeat(match[3].length - 1)}` : ""}${match[4] || ""}`;
+  }
+  function fitCrewMetrics(card) {
+    card.querySelectorAll(".crew-metric-value").forEach((value) => {
+      if (!value.clientWidth) return;
+      value.textContent = value.dataset.fullValue;
+      if (value.scrollWidth > value.clientWidth) value.textContent = value.dataset.overflowValue;
+    });
+  }
+  var crewMetricObserver = new ResizeObserver((entries) => entries.forEach(({ target }) => fitCrewMetrics(target)));
   function renderCrew() {
     const list = $("#crew-list");
+    crewMetricObserver.disconnect();
+    list.replaceChildren();
     CREW.forEach((member) => {
       const card = document.createElement("button");
       card.type = "button";
@@ -35281,33 +35358,57 @@ void main() {
       name.textContent = member.name;
       const activity = document.createElement("span");
       activity.className = "crew-activity";
-      activity.textContent = member.activity;
+      activity.textContent = t(member.activityKey);
       person.append(name, activity);
       const badge = document.createElement("span");
       badge.className = "crew-active";
-      badge.textContent = "ACTIVO";
+      badge.textContent = t("crewActive");
       badge.hidden = member.initials !== activeCrew;
       top.append(avatar, person, badge);
       const status = document.createElement("span");
       status.className = "crew-status";
       status.innerHTML = member.statusType === "normal" ? '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="m5 8 2 2 4-4"/></svg>' : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5 15 14H1z"/><path d="M8 5.5v4M8 12v.1"/></svg>';
       const statusText = document.createElement("span");
-      statusText.textContent = member.status;
+      statusText.textContent = t({
+        normal: "statusNormal",
+        caution: "statusCaution",
+        warning: "statusWarning"
+      }[member.statusType]);
       status.append(statusText);
       const metrics = document.createElement("span");
       metrics.className = "crew-metrics";
-      [["FC", member.heartRate], ["SpO\u2082", member.spo2], ["TEMP", member.temp]].forEach(([label, value]) => {
+      const staleMetrics = [];
+      member.metrics.forEach((metricData) => {
         const metric = document.createElement("span");
+        metric.className = "crew-metric";
         const metricLabel = document.createElement("span");
         metricLabel.className = "crew-metric-label";
-        metricLabel.textContent = label;
+        metricLabel.textContent = t(metricData.labelKey);
         const metricValue = document.createElement("span");
         metricValue.className = "crew-metric-value";
-        metricValue.textContent = value;
+        const stale = metricData.quality === "stale" || metricData.value == null;
+        const displayValue = stale ? `*** ${metricData.unit}` : `${metricData.value} ${metricData.unit}`;
+        metricValue.textContent = displayValue;
+        metricValue.dataset.fullValue = displayValue;
+        metricValue.dataset.overflowValue = stale ? displayValue : overflowMetricValue(displayValue);
+        if (stale) {
+          metricValue.classList.add("stale");
+          staleMetrics.push(`${t("noSignal")} \xB7 ${t(metricData.labelKey)} \xB7 ${t("lastValidReading", formatCrewTimestamp(metricData.lastValidAt))}`);
+        }
         metric.append(metricLabel, metricValue);
         metrics.append(metric);
       });
       card.append(top, status, metrics);
+      if (staleMetrics.length) {
+        const warning = document.createElement("span");
+        warning.className = "crew-data-warning";
+        staleMetrics.forEach((message) => {
+          const detail = document.createElement("span");
+          detail.textContent = message;
+          warning.append(detail);
+        });
+        card.append(warning);
+      }
       card.addEventListener("click", () => {
         activeCrew = member.initials;
         list.querySelectorAll(".crew-card").forEach((button) => {
@@ -35317,6 +35418,8 @@ void main() {
         });
       });
       list.append(card);
+      fitCrewMetrics(card);
+      crewMetricObserver.observe(card);
     });
   }
   renderCrew();
