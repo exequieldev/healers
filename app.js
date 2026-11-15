@@ -35748,6 +35748,12 @@ void main() {
       const avatar = document.createElement("span");
       avatar.className = "crew-avatar";
       avatar.textContent = member.initials;
+      const portrait = document.createElement("img");
+      portrait.src = `assets/crew/${member.initials}.jpeg`;
+      portrait.alt = "";
+      portrait.setAttribute("aria-hidden", "true");
+      portrait.addEventListener("error", () => portrait.remove(), { once: true });
+      avatar.append(portrait);
       const person = document.createElement("span");
       person.className = "crew-person";
       const name = document.createElement("span");

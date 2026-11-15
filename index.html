@@ -143,7 +143,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 .crew-card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 @keyframes crew-warning-pulse{50%{box-shadow:0 0 19px rgba(255,59,59,.62),inset 0 0 22px rgba(255,59,59,.16)}}
 .crew-top{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:8px}
-.crew-avatar{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--state);border-radius:50%;background:var(--state-bg);color:var(--tx);font:500 12px var(--mono)}
+.crew-avatar{position:relative;overflow:hidden;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--state);border-radius:50%;background:var(--state-bg);color:var(--tx);font:500 12px var(--mono)}
+.crew-avatar img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;object-fit:cover}
 .crew-person{min-width:0}
 .crew-name{display:block;font-size:12px;font-weight:600;line-height:1.2}
 .crew-activity{display:block;margin-top:2px;color:#c5d0d8;font-size:10.5px;line-height:1.2}
