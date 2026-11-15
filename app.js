@@ -34855,16 +34855,10 @@ void main() {
       metricSpo2: "SpO\u2082",
       metricTemperature: "TEMP",
       metricSleep: "SUE\xD1O",
-      metricCo2: "CO\u2082",
-      metricO2: "O\u2082",
-      metricPressure: "PRESI\xD3N",
-      metricNoise: "RUIDO",
-      metricCabinTemperature: "T\xB0 CABINA",
       noSignal: "SIN SE\xD1AL",
       lastValidReading: (value) => `\xDAlt. lectura v\xE1lida: ${value}`,
       telemetryTitle: "Telemetr\xEDa continua",
       biometricsHeading: "Signos vitales \xB7 Bio-monitor",
-      environmentHeading: "Ambiente de cabina",
       baselineUnavailable: "Base no disponible",
       notAvailable: "No disponible",
       views: "Vistas",
@@ -34933,16 +34927,10 @@ void main() {
       metricSpo2: "SpO\u2082",
       metricTemperature: "TEMP",
       metricSleep: "SLEEP",
-      metricCo2: "CO\u2082",
-      metricO2: "O\u2082",
-      metricPressure: "PRESSURE",
-      metricNoise: "NOISE",
-      metricCabinTemperature: "CABIN TEMP",
       noSignal: "NO SIGNAL",
       lastValidReading: (value) => `Last valid: ${value}`,
       telemetryTitle: "Continuous telemetry",
       biometricsHeading: "Vital signs \xB7 Bio-monitor",
-      environmentHeading: "Cabin environment",
       baselineUnavailable: "Baseline unavailable",
       notAvailable: "Unavailable",
       views: "Views",
@@ -35349,13 +35337,6 @@ void main() {
     { id: "temperature", labelKey: "metricTemperature", unit: "\xB0C" },
     { id: "sleep", labelKey: "metricSleep", unit: "h" }
   ];
-  var CABIN_TELEMETRY = [
-    { labelKey: "metricCo2", unit: "ppm" },
-    { labelKey: "metricO2", unit: "%" },
-    { labelKey: "metricPressure", unit: "kPa" },
-    { labelKey: "metricNoise", unit: "dB" },
-    { labelKey: "metricCabinTemperature", unit: "\xB0C" }
-  ];
   function formatCrewTimestamp(value) {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetr\xEDa inv\xE1lida: ${value}`);
@@ -35414,8 +35395,6 @@ void main() {
     const metrics = new Map(member.metrics.map((metric) => [metric.id, metric]));
     const vitals = $("#telemetry-vitals");
     vitals.replaceChildren(...TELEMETRY_VITALS.map((definition) => createTelemetryCard(definition.labelKey, metrics.get(definition.id), definition.unit)));
-    const cabin = $("#telemetry-environment");
-    cabin.replaceChildren(...CABIN_TELEMETRY.map((reading) => createTelemetryCard(reading.labelKey, null, reading.unit)));
     positionTelemetryInfo();
   }
   function positionTelemetryInfo() {
@@ -35469,7 +35448,6 @@ void main() {
       status.append(statusText);
       const metrics = document.createElement("span");
       metrics.className = "crew-metrics";
-      const staleMetrics = [];
       member.metrics.forEach((metricData) => {
         const metric = document.createElement("span");
         metric.className = "crew-metric";
@@ -35483,24 +35461,11 @@ void main() {
         metricValue.textContent = displayValue;
         metricValue.dataset.fullValue = displayValue;
         metricValue.dataset.overflowValue = stale ? displayValue : overflowMetricValue(displayValue);
-        if (stale) {
-          metricValue.classList.add("stale");
-          staleMetrics.push(`${t("noSignal")} \xB7 ${t(metricData.labelKey)} \xB7 ${t("lastValidReading", formatCrewTimestamp(metricData.lastValidAt))}`);
-        }
+        if (stale) metricValue.classList.add("stale");
         metric.append(metricLabel, metricValue);
         metrics.append(metric);
       });
       card.append(top, status, metrics);
-      if (staleMetrics.length) {
-        const warning = document.createElement("span");
-        warning.className = "crew-data-warning";
-        staleMetrics.forEach((message) => {
-          const detail = document.createElement("span");
-          detail.textContent = message;
-          warning.append(detail);
-        });
-        card.append(warning);
-      }
       card.addEventListener("click", () => {
         activeCrew = member.initials;
         list.querySelectorAll(".crew-card").forEach((button) => {

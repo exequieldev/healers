@@ -245,13 +245,6 @@ const TELEMETRY_VITALS = [
   {id:'temperature', labelKey:'metricTemperature', unit:'°C'},
   {id:'sleep', labelKey:'metricSleep', unit:'h'},
 ];
-const CABIN_TELEMETRY = [
-  {labelKey:'metricCo2', unit:'ppm'},
-  {labelKey:'metricO2', unit:'%'},
-  {labelKey:'metricPressure', unit:'kPa'},
-  {labelKey:'metricNoise', unit:'dB'},
-  {labelKey:'metricCabinTemperature', unit:'°C'},
-];
 function formatCrewTimestamp(value){
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetría inválida: ${value}`);
@@ -311,9 +304,6 @@ function renderTelemetry(){
   const vitals = $('#telemetry-vitals');
   vitals.replaceChildren(...TELEMETRY_VITALS.map(definition =>
     createTelemetryCard(definition.labelKey, metrics.get(definition.id), definition.unit)));
-  const cabin = $('#telemetry-environment');
-  cabin.replaceChildren(...CABIN_TELEMETRY.map(reading =>
-    createTelemetryCard(reading.labelKey, null, reading.unit)));
   positionTelemetryInfo();
 }
 function positionTelemetryInfo(){
@@ -372,7 +362,6 @@ function renderCrew(){
 
     const metrics = document.createElement('span');
     metrics.className = 'crew-metrics';
-    const staleMetrics = [];
     member.metrics.forEach(metricData => {
       const metric = document.createElement('span');
       metric.className = 'crew-metric';
@@ -386,25 +375,12 @@ function renderCrew(){
       metricValue.textContent = displayValue;
       metricValue.dataset.fullValue = displayValue;
       metricValue.dataset.overflowValue = stale ? displayValue : overflowMetricValue(displayValue);
-      if (stale) {
-        metricValue.classList.add('stale');
-        staleMetrics.push(`${t('noSignal')} · ${t(metricData.labelKey)} · ${t('lastValidReading', formatCrewTimestamp(metricData.lastValidAt))}`);
-      }
+      if (stale) metricValue.classList.add('stale');
       metric.append(metricLabel, metricValue);
       metrics.append(metric);
     });
 
     card.append(top, status, metrics);
-    if (staleMetrics.length) {
-      const warning = document.createElement('span');
-      warning.className = 'crew-data-warning';
-      staleMetrics.forEach(message => {
-        const detail = document.createElement('span');
-        detail.textContent = message;
-        warning.append(detail);
-      });
-      card.append(warning);
-    }
     card.addEventListener('click', () => {
       activeCrew = member.initials;
       list.querySelectorAll('.crew-card').forEach(button => {
