@@ -201,7 +201,7 @@ async function setLang(l){
   lang = l; try { localStorage.setItem('lang', l); } catch (e) {}
   const openSys = [...document.querySelectorAll('.sys.open')].map(el => el.dataset.sys);
   const openGrp = [...document.querySelectorAll('.grp.open')].map(el => el.dataset.gid);
-  localize(); applyStatic(); renderCrew(); buildSystemsUI();
+  localize(); applyStatic(); renderCrew(); renderTelemetry(); buildSystemsUI();
   openSys.forEach(k => { const el = document.querySelector(`.sys[data-sys="${k}"]`); if (el){ el.classList.add('open'); el.querySelector('.sysname').setAttribute('aria-expanded', 'true'); } });
   openGrp.forEach(g => document.querySelector(`.grp[data-gid="${CSS.escape(g)}"] .grow button`)?.click());
   if (selected){ const c = CONC[PARTS[selected].p.c]; $('#label .ln').textContent = c.n; $('#label .ls').textContent = [SYS[c.s].n, SIDE[PARTS[selected].p.sd]].filter(Boolean).join(' · '); }
@@ -212,32 +212,46 @@ $('#lang').addEventListener('click', () => setLang(LANGS[(LANGS.indexOf(lang) + 
 
 const CREW = [
   {initials:'SP', name:'S. PERGHER', activityKey:'activityCabin', statusType:'normal', metrics:[
-    {labelKey:'metricHeartRate', value:'72', unit:'BPM'},
-    {labelKey:'metricSpo2', value:'98', unit:'%'},
-    {labelKey:'metricTemperature', value:'36.8', unit:'°C'},
+    {id:'heartRate', labelKey:'metricHeartRate', value:'72', unit:'BPM'},
+    {id:'spo2', labelKey:'metricSpo2', value:'98', unit:'%'},
+    {id:'temperature', labelKey:'metricTemperature', value:'36.8', unit:'°C'},
   ]},
   {initials:'LC', name:'L. CHILAVERT', activityKey:'activityEva', statusType:'warning', metrics:[
-    {labelKey:'metricHeartRate', value:'98', unit:'BPM'},
-    {labelKey:'metricSpo2', value:'96', unit:'%'},
-    {labelKey:'metricTemperature', value:'37.1', unit:'°C'},
+    {id:'heartRate', labelKey:'metricHeartRate', value:'98', unit:'BPM'},
+    {id:'spo2', labelKey:'metricSpo2', value:'96', unit:'%'},
+    {id:'temperature', labelKey:'metricTemperature', value:'37.1', unit:'°C'},
   ]},
   {initials:'BE', name:'B. EITHER', activityKey:'activityBio', statusType:'caution', metrics:[
-    {labelKey:'metricHeartRate', value:null, unit:'BPM', quality:'stale', lastValidAt:'2026-11-15T10:45:00-03:00'},
-    {labelKey:'metricSpo2', value:'97', unit:'%'},
-    {labelKey:'metricTemperature', value:'36.7', unit:'°C'},
+    {id:'heartRate', labelKey:'metricHeartRate', value:null, unit:'BPM', quality:'stale', lastValidAt:'2026-11-15T10:45:00-03:00'},
+    {id:'spo2', labelKey:'metricSpo2', value:'97', unit:'%'},
+    {id:'temperature', labelKey:'metricTemperature', value:'36.7', unit:'°C'},
   ]},
   {initials:'LP', name:'L. PERGHER', activityKey:'activityRest', statusType:'caution', metrics:[
-    {labelKey:'metricHeartRate', value:'66', unit:'BPM'},
-    {labelKey:'metricSpo2', value:'99', unit:'%'},
-    {labelKey:'metricTemperature', value:'36.5', unit:'°C'},
+    {id:'heartRate', labelKey:'metricHeartRate', value:'66', unit:'BPM'},
+    {id:'spo2', labelKey:'metricSpo2', value:'99', unit:'%'},
+    {id:'temperature', labelKey:'metricTemperature', value:'36.5', unit:'°C'},
   ]},
   {initials:'ED', name:'E. DIAZ', activityKey:'activityCabin', statusType:'normal', metrics:[
-    {labelKey:'metricHeartRate', value:'74', unit:'BPM'},
-    {labelKey:'metricSpo2', value:'98', unit:'%'},
-    {labelKey:'metricTemperature', value:'36.6', unit:'°C'},
+    {id:'heartRate', labelKey:'metricHeartRate', value:'74', unit:'BPM'},
+    {id:'spo2', labelKey:'metricSpo2', value:'98', unit:'%'},
+    {id:'temperature', labelKey:'metricTemperature', value:'36.6', unit:'°C'},
   ]},
 ];
 let activeCrew = CREW[0].initials;
+const TELEMETRY_VITALS = [
+  {id:'heartRate', labelKey:'metricHeartRate', unit:'BPM'},
+  {id:'respiratoryRate', labelKey:'metricRespiratoryRate', unit:'RPM'},
+  {id:'spo2', labelKey:'metricSpo2', unit:'%'},
+  {id:'temperature', labelKey:'metricTemperature', unit:'°C'},
+  {id:'sleep', labelKey:'metricSleep', unit:'h'},
+];
+const CABIN_TELEMETRY = [
+  {labelKey:'metricCo2', unit:'ppm'},
+  {labelKey:'metricO2', unit:'%'},
+  {labelKey:'metricPressure', unit:'kPa'},
+  {labelKey:'metricNoise', unit:'dB'},
+  {labelKey:'metricCabinTemperature', unit:'°C'},
+];
 function formatCrewTimestamp(value){
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetría inválida: ${value}`);
@@ -259,6 +273,48 @@ function fitCrewMetrics(card){
   });
 }
 const crewMetricObserver = new ResizeObserver(entries => entries.forEach(({target}) => fitCrewMetrics(target)));
+function createTelemetryCard(labelKey, reading, unit){
+  const card = document.createElement('article');
+  card.className = 'telemetry-card';
+  const label = document.createElement('span');
+  label.className = 'telemetry-label';
+  label.textContent = t(labelKey);
+  const value = document.createElement('span');
+  value.className = 'telemetry-value';
+  const note = document.createElement('span');
+  note.className = 'telemetry-note';
+  if (reading?.quality === 'stale'){
+    value.classList.add('stale');
+    value.append(document.createTextNode('***'));
+    note.classList.add('stale');
+    note.textContent = `${t('noSignal')} · ${t('lastValidReading', formatCrewTimestamp(reading.lastValidAt))}`;
+  } else if (reading && reading.value != null){
+    value.append(document.createTextNode(String(reading.value)));
+    note.textContent = t('baselineUnavailable');
+  } else {
+    value.classList.add('unavailable');
+    value.append(document.createTextNode('—'));
+    note.textContent = t('notAvailable');
+  }
+  const unitLabel = document.createElement('span');
+  unitLabel.className = 'telemetry-unit';
+  unitLabel.textContent = unit;
+  value.append(unitLabel);
+  card.append(label, value, note);
+  return card;
+}
+function renderTelemetry(){
+  const member = CREW.find(person => person.initials === activeCrew);
+  if (!member) throw new Error(`Tripulante activo no encontrado: ${activeCrew}`);
+  $('#telemetry-subject').textContent = member.name;
+  const metrics = new Map(member.metrics.map(metric => [metric.id, metric]));
+  const vitals = $('#telemetry-vitals');
+  vitals.replaceChildren(...TELEMETRY_VITALS.map(definition =>
+    createTelemetryCard(definition.labelKey, metrics.get(definition.id), definition.unit)));
+  const cabin = $('#telemetry-environment');
+  cabin.replaceChildren(...CABIN_TELEMETRY.map(reading =>
+    createTelemetryCard(reading.labelKey, null, reading.unit)));
+}
 function renderCrew(){
   const list = $('#crew-list');
   crewMetricObserver.disconnect();
@@ -345,6 +401,8 @@ function renderCrew(){
         button.setAttribute('aria-pressed', String(selected));
         button.querySelector('.crew-active').hidden = !selected;
       });
+      renderTelemetry();
+      if (innerWidth <= 900) showTab('telemetry');
     });
     list.append(card);
     fitCrewMetrics(card);
@@ -352,6 +410,7 @@ function renderCrew(){
   });
 }
 renderCrew();
+renderTelemetry();
 const CHEV = '<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>';
 function buildSystemsUI(){
   const box = $('#systems'); box.innerHTML = '';
@@ -572,7 +631,8 @@ function showTab(t){
   if (innerWidth > 900) return;
   setFilterPanel(t === 'left');
   $('#right').classList.toggle('show', t === 'right');
-  if (t === 'right') $('#crew').hidden = true;
+  $('#telemetry').classList.toggle('show', t === 'telemetry');
+  if (t === 'right' || t === 'telemetry') $('#crew').hidden = true;
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
   fitView();
 }
@@ -596,7 +656,7 @@ $('#filters-toggle').addEventListener('click', () => {
   if (innerWidth <= 900) fitView();
 });
 function layout(){
-  if (innerWidth > 900){ $('#right').classList.add('show'); }
+  if (innerWidth > 900){ $('#right').classList.add('show'); $('#telemetry').classList.add('show'); $('#crew').hidden = false; }
   else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab('none');
   else showTab(document.querySelector('[data-tab][aria-pressed="true"]').dataset.tab);
 }

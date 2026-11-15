@@ -34851,10 +34851,22 @@ void main() {
       activityBio: "Actividad de ejemplo \xB7 Bio-monitor",
       activityRest: "Turno nocturno \xB7 Fatiga leve",
       metricHeartRate: "FC",
+      metricRespiratoryRate: "RESP.",
       metricSpo2: "SpO\u2082",
       metricTemperature: "TEMP",
+      metricSleep: "SUE\xD1O",
+      metricCo2: "CO\u2082",
+      metricO2: "O\u2082",
+      metricPressure: "PRESI\xD3N",
+      metricNoise: "RUIDO",
+      metricCabinTemperature: "T\xB0 CABINA",
       noSignal: "SIN SE\xD1AL",
       lastValidReading: (value) => `\xDAlt. lectura v\xE1lida: ${value}`,
+      telemetryTitle: "Telemetr\xEDa continua",
+      biometricsHeading: "Signos vitales \xB7 Bio-monitor",
+      environmentHeading: "Ambiente de cabina",
+      baselineUnavailable: "Base no disponible",
+      notAvailable: "No disponible",
       views: "Vistas",
       front: "Anterior",
       back: "Posterior",
@@ -34869,6 +34881,7 @@ void main() {
       panelCard: "Ficha de la estructura",
       tabs: "Paneles",
       tabModel: "Modelo",
+      tabTelemetry: "Signos",
       tabCard: "Ficha",
       searchPh: "Buscar estructura (p. ej. \xABf\xE9mur\xBB, \xABh\xEDgado\xBB)",
       search: "Buscar estructura",
@@ -34916,10 +34929,22 @@ void main() {
       activityBio: "Sample activity \xB7 Bio-monitor",
       activityRest: "Night shift \xB7 Mild fatigue",
       metricHeartRate: "HR",
+      metricRespiratoryRate: "RESP.",
       metricSpo2: "SpO\u2082",
       metricTemperature: "TEMP",
+      metricSleep: "SLEEP",
+      metricCo2: "CO\u2082",
+      metricO2: "O\u2082",
+      metricPressure: "PRESSURE",
+      metricNoise: "NOISE",
+      metricCabinTemperature: "CABIN TEMP",
       noSignal: "NO SIGNAL",
       lastValidReading: (value) => `Last valid: ${value}`,
+      telemetryTitle: "Continuous telemetry",
+      biometricsHeading: "Vital signs \xB7 Bio-monitor",
+      environmentHeading: "Cabin environment",
+      baselineUnavailable: "Baseline unavailable",
+      notAvailable: "Unavailable",
       views: "Views",
       front: "Anterior",
       back: "Posterior",
@@ -34934,6 +34959,7 @@ void main() {
       panelCard: "Structure card",
       tabs: "Panels",
       tabModel: "Model",
+      tabTelemetry: "Vitals",
       tabCard: "Card",
       searchPh: 'Search structure (e.g. "femur", "liver")',
       search: "Search structure",
@@ -35268,6 +35294,7 @@ void main() {
     localize();
     applyStatic();
     renderCrew();
+    renderTelemetry();
     buildSystemsUI();
     openSys.forEach((k) => {
       const el = document.querySelector(`.sys[data-sys="${k}"]`);
@@ -35289,32 +35316,46 @@ void main() {
   $("#lang").addEventListener("click", () => setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]));
   var CREW = [
     { initials: "SP", name: "S. PERGHER", activityKey: "activityCabin", statusType: "normal", metrics: [
-      { labelKey: "metricHeartRate", value: "72", unit: "BPM" },
-      { labelKey: "metricSpo2", value: "98", unit: "%" },
-      { labelKey: "metricTemperature", value: "36.8", unit: "\xB0C" }
+      { id: "heartRate", labelKey: "metricHeartRate", value: "72", unit: "BPM" },
+      { id: "spo2", labelKey: "metricSpo2", value: "98", unit: "%" },
+      { id: "temperature", labelKey: "metricTemperature", value: "36.8", unit: "\xB0C" }
     ] },
     { initials: "LC", name: "L. CHILAVERT", activityKey: "activityEva", statusType: "warning", metrics: [
-      { labelKey: "metricHeartRate", value: "98", unit: "BPM" },
-      { labelKey: "metricSpo2", value: "96", unit: "%" },
-      { labelKey: "metricTemperature", value: "37.1", unit: "\xB0C" }
+      { id: "heartRate", labelKey: "metricHeartRate", value: "98", unit: "BPM" },
+      { id: "spo2", labelKey: "metricSpo2", value: "96", unit: "%" },
+      { id: "temperature", labelKey: "metricTemperature", value: "37.1", unit: "\xB0C" }
     ] },
     { initials: "BE", name: "B. EITHER", activityKey: "activityBio", statusType: "caution", metrics: [
-      { labelKey: "metricHeartRate", value: null, unit: "BPM", quality: "stale", lastValidAt: "2026-11-15T10:45:00-03:00" },
-      { labelKey: "metricSpo2", value: "97", unit: "%" },
-      { labelKey: "metricTemperature", value: "36.7", unit: "\xB0C" }
+      { id: "heartRate", labelKey: "metricHeartRate", value: null, unit: "BPM", quality: "stale", lastValidAt: "2026-11-15T10:45:00-03:00" },
+      { id: "spo2", labelKey: "metricSpo2", value: "97", unit: "%" },
+      { id: "temperature", labelKey: "metricTemperature", value: "36.7", unit: "\xB0C" }
     ] },
     { initials: "LP", name: "L. PERGHER", activityKey: "activityRest", statusType: "caution", metrics: [
-      { labelKey: "metricHeartRate", value: "66", unit: "BPM" },
-      { labelKey: "metricSpo2", value: "99", unit: "%" },
-      { labelKey: "metricTemperature", value: "36.5", unit: "\xB0C" }
+      { id: "heartRate", labelKey: "metricHeartRate", value: "66", unit: "BPM" },
+      { id: "spo2", labelKey: "metricSpo2", value: "99", unit: "%" },
+      { id: "temperature", labelKey: "metricTemperature", value: "36.5", unit: "\xB0C" }
     ] },
     { initials: "ED", name: "E. DIAZ", activityKey: "activityCabin", statusType: "normal", metrics: [
-      { labelKey: "metricHeartRate", value: "74", unit: "BPM" },
-      { labelKey: "metricSpo2", value: "98", unit: "%" },
-      { labelKey: "metricTemperature", value: "36.6", unit: "\xB0C" }
+      { id: "heartRate", labelKey: "metricHeartRate", value: "74", unit: "BPM" },
+      { id: "spo2", labelKey: "metricSpo2", value: "98", unit: "%" },
+      { id: "temperature", labelKey: "metricTemperature", value: "36.6", unit: "\xB0C" }
     ] }
   ];
   var activeCrew = CREW[0].initials;
+  var TELEMETRY_VITALS = [
+    { id: "heartRate", labelKey: "metricHeartRate", unit: "BPM" },
+    { id: "respiratoryRate", labelKey: "metricRespiratoryRate", unit: "RPM" },
+    { id: "spo2", labelKey: "metricSpo2", unit: "%" },
+    { id: "temperature", labelKey: "metricTemperature", unit: "\xB0C" },
+    { id: "sleep", labelKey: "metricSleep", unit: "h" }
+  ];
+  var CABIN_TELEMETRY = [
+    { labelKey: "metricCo2", unit: "ppm" },
+    { labelKey: "metricO2", unit: "%" },
+    { labelKey: "metricPressure", unit: "kPa" },
+    { labelKey: "metricNoise", unit: "dB" },
+    { labelKey: "metricCabinTemperature", unit: "\xB0C" }
+  ];
   function formatCrewTimestamp(value) {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetr\xEDa inv\xE1lida: ${value}`);
@@ -35336,6 +35377,46 @@ void main() {
     });
   }
   var crewMetricObserver = new ResizeObserver((entries) => entries.forEach(({ target }) => fitCrewMetrics(target)));
+  function createTelemetryCard(labelKey, reading, unit) {
+    const card = document.createElement("article");
+    card.className = "telemetry-card";
+    const label = document.createElement("span");
+    label.className = "telemetry-label";
+    label.textContent = t(labelKey);
+    const value = document.createElement("span");
+    value.className = "telemetry-value";
+    const note = document.createElement("span");
+    note.className = "telemetry-note";
+    if (reading?.quality === "stale") {
+      value.classList.add("stale");
+      value.append(document.createTextNode("***"));
+      note.classList.add("stale");
+      note.textContent = `${t("noSignal")} \xB7 ${t("lastValidReading", formatCrewTimestamp(reading.lastValidAt))}`;
+    } else if (reading && reading.value != null) {
+      value.append(document.createTextNode(String(reading.value)));
+      note.textContent = t("baselineUnavailable");
+    } else {
+      value.classList.add("unavailable");
+      value.append(document.createTextNode("\u2014"));
+      note.textContent = t("notAvailable");
+    }
+    const unitLabel = document.createElement("span");
+    unitLabel.className = "telemetry-unit";
+    unitLabel.textContent = unit;
+    value.append(unitLabel);
+    card.append(label, value, note);
+    return card;
+  }
+  function renderTelemetry() {
+    const member = CREW.find((person) => person.initials === activeCrew);
+    if (!member) throw new Error(`Tripulante activo no encontrado: ${activeCrew}`);
+    $("#telemetry-subject").textContent = member.name;
+    const metrics = new Map(member.metrics.map((metric) => [metric.id, metric]));
+    const vitals = $("#telemetry-vitals");
+    vitals.replaceChildren(...TELEMETRY_VITALS.map((definition) => createTelemetryCard(definition.labelKey, metrics.get(definition.id), definition.unit)));
+    const cabin = $("#telemetry-environment");
+    cabin.replaceChildren(...CABIN_TELEMETRY.map((reading) => createTelemetryCard(reading.labelKey, null, reading.unit)));
+  }
   function renderCrew() {
     const list = $("#crew-list");
     crewMetricObserver.disconnect();
@@ -35416,6 +35497,8 @@ void main() {
           button.setAttribute("aria-pressed", String(selected2));
           button.querySelector(".crew-active").hidden = !selected2;
         });
+        renderTelemetry();
+        if (innerWidth <= 900) showTab("telemetry");
       });
       list.append(card);
       fitCrewMetrics(card);
@@ -35423,6 +35506,7 @@ void main() {
     });
   }
   renderCrew();
+  renderTelemetry();
   var CHEV = '<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 6 6 6-6 6"/></svg>';
   function buildSystemsUI() {
     const box = $("#systems");
@@ -35783,7 +35867,8 @@ void main() {
     if (innerWidth > 900) return;
     setFilterPanel(t2 === "left");
     $("#right").classList.toggle("show", t2 === "right");
-    if (t2 === "right") $("#crew").hidden = true;
+    $("#telemetry").classList.toggle("show", t2 === "telemetry");
+    if (t2 === "right" || t2 === "telemetry") $("#crew").hidden = true;
     document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tab === t2)));
     fitView();
   }
@@ -35813,6 +35898,8 @@ void main() {
   function layout() {
     if (innerWidth > 900) {
       $("#right").classList.add("show");
+      $("#telemetry").classList.add("show");
+      $("#crew").hidden = false;
     } else if (!document.querySelector('[data-tab][aria-pressed="true"]')) showTab("none");
     else showTab(document.querySelector('[data-tab][aria-pressed="true"]').dataset.tab);
   }
