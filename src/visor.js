@@ -7,6 +7,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { LANGS, LANG_NAMES, STR, detectLang } from './i18n.js';
+import { TRIAGE_PROTOCOL } from './triage.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -86,6 +87,18 @@ const hiddenParts = new Set();
 let isolated = null;   // Set de ids o null
 let selected = null, anchorLocal = null, focusMode = false;
 let labelLeft = null;   // lado de la etiqueta; con margen para que no parpadee si el punto queda en el centro
+const createTriageState = () => ({
+  step: 'region',
+  region: null,
+  redFlagIndex: 0,
+  redFlagResponses: [],
+  positiveRedFlags: [],
+  specificIndex: 0,
+  specificResponses: [],
+  completedChecklist: new Set(),
+});
+let triageState = createTriageState();
+let triagePartId = null;
 
 function glassify(mat){
   mat.userData.glass = {value: 0};
@@ -144,7 +157,7 @@ async function boot(){
   DATA.parts.forEach(p => PARTS[p.id] = {p, mesh:null});
   try { await loadOverlay(lang); } catch (e) { console.warn('Sin traducción para', lang); lang = 'es'; }
   localize(); applyStatic();
-  buildSystemsUI(); renderInfo(); applyOpacity();
+  buildSystemsUI(); renderInfo(); renderTriagePanel(); applyOpacity();
   const total = Object.values(DATA.files).reduce((a,f)=>a+f.bytes,0);
   const upd = () => { const got = Object.values(progress).reduce((a,b)=>a+b,0); const pct = Math.min(100, Math.round(got/total*100));
     $('#lbar').style.width = pct+'%'; $('#lpct').textContent = pct+' %'; };
@@ -205,7 +218,7 @@ async function setLang(l){
   openSys.forEach(k => { const el = document.querySelector(`.sys[data-sys="${k}"]`); if (el){ el.classList.add('open'); el.querySelector('.sysname').setAttribute('aria-expanded', 'true'); } });
   openGrp.forEach(g => document.querySelector(`.grp[data-gid="${CSS.escape(g)}"] .grow button`)?.click());
   if (selected){ const c = CONC[PARTS[selected].p.c]; $('#label .ln').textContent = c.n; $('#label .ls').textContent = [SYS[c.s].n, SIDE[PARTS[selected].p.sd]].filter(Boolean).join(' · '); }
-  renderInfo(); refreshListStates();
+  renderInfo(); renderTriagePanel(); refreshListStates();
   if ($('#q').value) $('#q').dispatchEvent(new Event('input'));
 }
 $('#lang').addEventListener('click', () => setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]));
@@ -427,6 +440,10 @@ function renderCrew(){
     card.append(top, status, metrics);
     card.addEventListener('click', () => {
       activeCrew = member.initials;
+      if (selected && isHeadPart(selected)){
+        triageState = createTriageState();
+        renderTriagePanel();
+      }
       list.querySelectorAll('.crew-card').forEach(button => {
         const selected = button === card;
         button.setAttribute('aria-pressed', String(selected));
@@ -547,6 +564,7 @@ $('#q').addEventListener('input', e => {
 // ---------------------------------------------------------------- ficha
 function renderInfo(){
   const box = $('#info');
+  if (!box) return;
   if (!selected){
     box.innerHTML = `<div class="empty" style="display:flex;flex-direction:column;gap:14px">
       <div class="eyebrow">${t('howTo')}</div>
@@ -570,6 +588,172 @@ function renderInfo(){
   box.querySelector('#focusmode').addEventListener('change', e => { focusMode = e.target.checked; applyOpacity(); });
 }
 
+function isHeadPart(id){
+  const P = PARTS[id], concept = P && BASE_CONC[P.p.c];
+  if (!concept) return false;
+  const group = norm(concept.g);
+  return group === 'craneo' || group.startsWith('cabeza:') || group === 'dorso: musculos suboccipitales';
+}
+function triageTexts(values){ return values[lang] || values.es; }
+function triageQuestionView(question, index, total, answerLabels, progress){
+  return `<div class="triage-count"><span>${t('triageQuestionLabel', index + 1, total)}</span><strong>${t('triagePositiveCount', triageState.positiveRedFlags.length)}</strong></div>
+    <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><i style="width:${progress}%"></i></div>
+    <div class="triage-question"><span class="triage-step">${esc(t('triagePhase1'))} · ${index + 1}</span><p>${esc(question)}</p></div>
+    <div class="triage-answers">
+      <button class="triage-answer" type="button" data-triage-answer="yes">${esc(answerLabels[0])}</button>
+      <button class="triage-answer" type="button" data-triage-answer="no">${esc(answerLabels[1])}</button>
+    </div>`;
+}
+function renderTriagePanel(){
+  const box = $('#triage');
+  if (!box) return;
+  if (!selected || !isHeadPart(selected)){
+    triagePartId = null;
+    triageState = createTriageState();
+    box.innerHTML = `<section class="triage">
+      <div class="triage-head"><h2>${t('triageTitle')}</h2>
+      <p>${t(selected ? 'triageHeadRequired' : 'triageIntro')}</p></div>
+      <p class="triage-disclaimer">${t('triageDisclaimer')}</p>
+    </section>`;
+    return;
+  }
+  if (triagePartId !== selected){
+    triagePartId = selected;
+    triageState = createTriageState();
+  }
+
+  const region = triageState.region && TRIAGE_PROTOCOL.regions[triageState.region];
+  let content = '';
+  if (triageState.step === 'region'){
+    const regionChoices = Object.entries(TRIAGE_PROTOCOL.regions).map(([id, data]) =>
+      `<button class="triage-region" type="button" data-triage-region="${id}">
+        <span>${esc(data.code)} // ${esc(triageTexts(data.title).toUpperCase())}</span>
+        <strong>${esc(triageTexts(data.title))}</strong>
+        <small>${esc(triageTexts(data.description))}</small>
+        <small>${t('triageStart')} →</small>
+      </button>`).join('');
+    content = `<span class="triage-step">${t('triageLocationStep')}</span>
+      <h2>${t('triageChooseRegion')}</h2><p>${t('triageChooseRegionHint')}</p>
+      <div class="triage-regions">${regionChoices}</div>`;
+  } else if (triageState.step === 'redFlags'){
+    const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+    const index = triageState.redFlagIndex;
+    const percent = Math.round(((index + 1) / questions.length) * 100);
+    content = `<div class="triage-head"><span class="triage-step">${t('triagePhase1')}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+      ${triageQuestionView(questions[index], index, questions.length, [t('triageYes'), t('triageNo')], percent)}
+      <div class="triage-nav"><button type="button" data-triage-back>${t('triagePrevious')}</button><span class="triage-note">${t('triageEmergencyThreshold')}</span></div>`;
+  } else if (triageState.step === 'emergency'){
+    const checklist = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist).map((text, index) => {
+      const checked = triageState.completedChecklist.has(index);
+      return `<button type="button" class="triage-check" data-triage-check="${index}" aria-pressed="${checked}">
+        <span aria-hidden="true">${checked ? '✓' : index + 1}</span><span>${esc(text)}</span>
+      </button>`;
+    }).join('');
+    content = `<div class="triage-alert"><span class="triage-step">${t('triageEmergencyHeading')}</span>
+        <h2>${t('triageEmergencyHeading')}</h2><p>${t('triageEmergencyBody')}</p>
+      </div>
+      <div><p><strong>${t('triagePositiveCount', triageState.positiveRedFlags.length)}</strong></p>
+        <ul class="triage-summary">${triageState.positiveRedFlags.map(text => `<li>${esc(text)}</li>`).join('')}</ul>
+      </div>
+      <div><span class="triage-step">${t('triageEmergencyActions')}</span><div class="triage-checklist">${checklist}</div></div>
+      <button class="triage-action" type="button" data-triage-reset>${t('triageNewEvaluation')}</button>`;
+  } else if (triageState.step === 'specific'){
+    const questions = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]);
+    const index = triageState.specificIndex;
+    const question = questions[index];
+    const percent = Math.round(((index + 1) / questions.length) * 100);
+    const answers = triageState.region === 'temporal' && index === 6
+      ? [t('triageEpisodes'), t('triageContinuous')]
+      : [t('triageYes'), t('triageNo')];
+    content = `<div class="triage-head"><span class="triage-step">${t('triagePhase2')}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+      <div class="triage-count"><span>${t('triageQuestionLabel', index + 1, questions.length)}</span><strong>${esc(region.code)}</strong></div>
+      <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+      <div class="triage-question"><span class="triage-step">${t('triagePhase2')} · Q${index + 1}</span><p>${esc(question)}</p></div>
+      <div class="triage-answers"><button class="triage-answer" type="button" data-triage-answer="yes">${esc(answers[0])}</button>
+        <button class="triage-answer" type="button" data-triage-answer="no">${esc(answers[1])}</button></div>
+      <div class="triage-nav"><button type="button" data-triage-back>${t('triagePrevious')}</button><span class="triage-note">${t('triageChooseRegionHint')}</span></div>`;
+  } else {
+    const flags = triageTexts(TRIAGE_PROTOCOL.redFlags);
+    const specific = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]);
+    const summary = [
+      ...flags.map((question, index) => [question, triageState.redFlagResponses[index]]),
+      ...specific.map((question, index) => [question, triageState.specificResponses[index]]),
+    ];
+    content = `<div class="triage-done"><span class="triage-step">${esc(region.code)}</span>
+        <h2>${t('triageCompleteHeading')}</h2><p>${t('triageCompleteBody')}</p></div>
+      <ul class="triage-summary">${summary.map(([question, answer]) => `<li><strong>${esc(question)}</strong><br>${answer ? t('triageResponseYes') : t('triageResponseNo')}</li>`).join('')}</ul>
+      <button class="triage-action" type="button" data-triage-reset>${t('triageNewEvaluation')}</button>`;
+  }
+
+  const panelHeading = region ? triageTexts(region.title) : t('triageTitle');
+  box.innerHTML = `<section class="triage">
+    <div class="triage-head"><h2>${esc(panelHeading)}</h2></div>
+    <p class="triage-disclaimer">${t('triageDisclaimer')}</p>${content}
+  </section>`;
+  box.querySelectorAll('[data-triage-region]').forEach(button => button.addEventListener('click', () => {
+    triageState = createTriageState();
+    triageState.region = button.dataset.triageRegion;
+    triageState.step = 'redFlags';
+    renderTriagePanel();
+  }));
+  box.querySelectorAll('[data-triage-answer]').forEach(button => button.addEventListener('click', () => {
+    const answer = button.dataset.triageAnswer === 'yes';
+    if (triageState.step === 'redFlags'){
+      const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+      triageState.redFlagResponses[triageState.redFlagIndex] = answer;
+      triageState.positiveRedFlags = triageState.redFlagResponses
+        .map((value, index) => value ? questions[index] : null).filter(Boolean);
+      if (triageState.positiveRedFlags.length >= 3){
+        triageState.step = 'emergency';
+      } else if (triageState.redFlagIndex < questions.length - 1){
+        triageState.redFlagIndex++;
+      } else {
+        triageState.step = 'specific';
+      }
+    } else {
+      triageState.specificResponses[triageState.specificIndex] = answer;
+      const total = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]).length;
+      if (triageState.specificIndex < total - 1) triageState.specificIndex++;
+      else triageState.step = 'complete';
+    }
+    renderTriagePanel();
+  }));
+  box.querySelector('[data-triage-back]')?.addEventListener('click', () => {
+    if (triageState.step === 'redFlags'){
+      if (triageState.redFlagIndex > 0){
+        triageState.redFlagResponses.splice(triageState.redFlagIndex);
+        triageState.redFlagIndex--;
+        const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+        triageState.positiveRedFlags = triageState.redFlagResponses
+          .map((value, index) => value ? questions[index] : null).filter(Boolean);
+      } else {
+        triageState.step = 'region';
+        triageState.region = null;
+      }
+    } else if (triageState.specificIndex > 0){
+      triageState.specificIndex--;
+    } else {
+      triageState.step = 'redFlags';
+      triageState.redFlagIndex = TRIAGE_PROTOCOL.redFlags.es.length - 1;
+      triageState.redFlagResponses.splice(triageState.redFlagIndex);
+      const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+      triageState.positiveRedFlags = triageState.redFlagResponses
+        .map((value, index) => value ? questions[index] : null).filter(Boolean);
+    }
+    renderTriagePanel();
+  });
+  box.querySelectorAll('[data-triage-check]').forEach(button => button.addEventListener('click', () => {
+    const index = Number(button.dataset.triageCheck);
+    if (triageState.completedChecklist.has(index)) triageState.completedChecklist.delete(index);
+    else triageState.completedChecklist.add(index);
+    renderTriagePanel();
+  }));
+  box.querySelector('[data-triage-reset]')?.addEventListener('click', () => {
+    triageState = createTriageState();
+    renderTriagePanel();
+  });
+}
+
 // ---------------------------------------------------------------- selección
 function select(id, hitPoint, fly){
   const P = PARTS[id]; if (!P || !P.mesh) return;
@@ -584,14 +768,14 @@ function select(id, hitPoint, fly){
   else { P.mesh.geometry.computeBoundingBox(); anchorLocal = P.mesh.geometry.boundingBox.getCenter(new THREE.Vector3()); }
   $('#label .ln').textContent = c.n;
   $('#label .ls').textContent = [SYS[c.s].n, SIDE[P.p.sd]].filter(Boolean).join(' · ');
-  renderInfo(); refreshListStates(); applyOpacity();
+  renderInfo(); renderTriagePanel(); refreshListStates(); applyOpacity();
   if (fly){ focusMode = true; applyOpacity(); renderInfo(); focusSel(); }
 }
 function deselect(){
   if (!selected) return;
   const P = PARTS[selected]; if (P.mesh) P.mesh.material = materialFor(CONC[P.p.c].s, P.p.col);
   ghost.removeFromParent(); ghost.visible = false; focusMode = false;
-  selected = null; anchorLocal = null; renderInfo(); refreshListStates(); applyOpacity();
+  selected = null; anchorLocal = null; renderInfo(); renderTriagePanel(); refreshListStates(); applyOpacity();
 }
 function focusSel(){
   if (!selected) return;

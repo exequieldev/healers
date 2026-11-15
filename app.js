@@ -34870,11 +34870,11 @@ void main() {
       showFilters: "Mostrar filtros",
       hideFilters: "Ocultar filtros",
       panelLayers: "Capas y sistemas",
-      panelCard: "Ficha de la estructura",
+      panelCard: "Evaluaci\xF3n guiada",
       tabs: "Paneles",
       tabModel: "Modelo",
       tabTelemetry: "Signos",
-      tabCard: "Ficha",
+      tabCard: "Evaluaci\xF3n",
       searchPh: "Buscar estructura (p. ej. \xABf\xE9mur\xBB, \xABh\xEDgado\xBB)",
       search: "Buscar estructura",
       peel: "Pelar capas",
@@ -34905,7 +34905,33 @@ void main() {
       isolate: "Aislar",
       showAll: "Ver todo",
       hide: "Ocultar",
-      dimRest: "Atenuar el resto del cuerpo"
+      dimRest: "Atenuar el resto del cuerpo",
+      triageTitle: "Evaluaci\xF3n guiada de cefalea",
+      triageIntro: "Selecciona una estructura de la cabeza en el modelo 3D para iniciar.",
+      triageHeadRequired: "La evaluaci\xF3n se habilita al seleccionar una estructura craneal o de la cabeza.",
+      triageDisclaimer: "Simulaci\xF3n educativa: no constituye un diagn\xF3stico ni sustituye la evaluaci\xF3n de personal m\xE9dico.",
+      triageLocationStep: "PASO 1 \xB7 LOCALIZACI\xD3N ANAT\xD3MICA",
+      triageChooseRegion: "\xBFD\xF3nde se localiza el dolor de cabeza?",
+      triageChooseRegionHint: "Seleccione la regi\xF3n craneal principal afectada para iniciar la evaluaci\xF3n guiada.",
+      triageStart: "Iniciar evaluaci\xF3n",
+      triagePhase1: "FASE 1 \xB7 DESCARTE DE EMERGENCIA",
+      triagePhase2: "FASE 2 \xB7 CARACTERIZACI\xD3N",
+      triageQuestionLabel: (index, total) => `Pregunta ${index} de ${total}`,
+      triagePositiveCount: (count) => `Signos positivos: ${count} / 3`,
+      triageEmergencyThreshold: "Al acumular 3 o m\xE1s respuestas S\xCD se activa la Alarma Roja.",
+      triageYes: "S\xCD",
+      triageNo: "NO",
+      triagePrevious: "\u2190 Anterior",
+      triageEmergencyHeading: "PROTOCOLO DE EMERGENCIA \u2014 ALARMA ROJA",
+      triageEmergencyBody: "Se alcanz\xF3 el umbral de alerta. Interrogatorio secundario suspendido: mantenga el enlace con soporte m\xE9dico.",
+      triageEmergencyActions: "Acciones inmediatas",
+      triageNewEvaluation: "Nueva evaluaci\xF3n",
+      triageCompleteHeading: "Evaluaci\xF3n completada",
+      triageCompleteBody: "Se registraron las respuestas del cuestionario. Solicite la revisi\xF3n de personal m\xE9dico; este visor no genera un diagn\xF3stico.",
+      triageResponseYes: "S\xED",
+      triageResponseNo: "No",
+      triageEpisodes: "En episodios",
+      triageContinuous: "Es continuo"
     },
     en: {
       langLabel: "Language",
@@ -34940,11 +34966,11 @@ void main() {
       showFilters: "Show filters",
       hideFilters: "Hide filters",
       panelLayers: "Layers and systems",
-      panelCard: "Structure card",
+      panelCard: "Guided assessment",
       tabs: "Panels",
       tabModel: "Model",
       tabTelemetry: "Vitals",
-      tabCard: "Card",
+      tabCard: "Assessment",
       searchPh: 'Search structure (e.g. "femur", "liver")',
       search: "Search structure",
       peel: "Peel layers",
@@ -34975,7 +35001,177 @@ void main() {
       isolate: "Isolate",
       showAll: "Show all",
       hide: "Hide",
-      dimRest: "Dim the rest of the body"
+      dimRest: "Dim the rest of the body",
+      triageTitle: "Guided headache assessment",
+      triageIntro: "Select a head structure in the 3D model to begin.",
+      triageHeadRequired: "The assessment is enabled when a skull or head structure is selected.",
+      triageDisclaimer: "Educational simulation: this is not a diagnosis and does not replace evaluation by medical personnel.",
+      triageLocationStep: "STEP 1 \xB7 ANATOMICAL LOCATION",
+      triageChooseRegion: "Where is the headache located?",
+      triageChooseRegionHint: "Select the main affected cranial region to start the guided assessment.",
+      triageStart: "Start assessment",
+      triagePhase1: "PHASE 1 \xB7 EMERGENCY SCREENING",
+      triagePhase2: "PHASE 2 \xB7 CHARACTERIZATION",
+      triageQuestionLabel: (index, total) => `Question ${index} of ${total}`,
+      triagePositiveCount: (count) => `Positive signs: ${count} / 3`,
+      triageEmergencyThreshold: "Three or more YES answers trigger the Red Alert.",
+      triageYes: "YES",
+      triageNo: "NO",
+      triagePrevious: "\u2190 Previous",
+      triageEmergencyHeading: "EMERGENCY PROTOCOL \u2014 RED ALERT",
+      triageEmergencyBody: "The alert threshold has been reached. Secondary questioning is suspended: maintain contact with medical support.",
+      triageEmergencyActions: "Immediate actions",
+      triageNewEvaluation: "New assessment",
+      triageCompleteHeading: "Assessment complete",
+      triageCompleteBody: "Questionnaire responses were recorded. Request review by medical personnel; this viewer does not provide a diagnosis.",
+      triageResponseYes: "Yes",
+      triageResponseNo: "No",
+      triageEpisodes: "In episodes",
+      triageContinuous: "Continuous"
+    }
+  };
+
+  // src/triage.js
+  var TRIAGE_PROTOCOL = {
+    regions: {
+      frontal: {
+        code: "ZONE-01",
+        title: { es: "Frontal", en: "Frontal" },
+        description: {
+          es: "Frente, regi\xF3n supraorbitaria y por encima de las cejas.",
+          en: "Forehead, supraorbital area, and above the eyebrows."
+        }
+      },
+      temporal: {
+        code: "ZONE-02",
+        title: { es: "Temporal / parietal", en: "Temporal / parietal" },
+        description: {
+          es: "Sienes y regiones laterales o superiores de la cabeza.",
+          en: "Temples and the lateral or upper areas of the head."
+        }
+      },
+      occipital: {
+        code: "ZONE-03",
+        title: { es: "Occipital", en: "Occipital" },
+        description: {
+          es: "Nuca y regi\xF3n posterior del cr\xE1neo.",
+          en: "Nape and posterior region of the skull."
+        }
+      }
+    },
+    redFlags: {
+      es: [
+        "\xBFEl dolor comenz\xF3 de manera s\xFAbita y alcanz\xF3 su m\xE1xima intensidad en segundos o minutos?",
+        "\xBFEs el peor dolor de cabeza que experiment\xF3 en su vida?",
+        "\xBFPresenta debilidad o p\xE9rdida de sensibilidad en un brazo, pierna o lado de la cara?",
+        "\xBFTiene dificultad para hablar, comprender o caminar?",
+        "\xBFPresenta p\xE9rdida de visi\xF3n, visi\xF3n doble o alteraci\xF3n visual repentina?",
+        "\xBFTiene fiebre acompa\xF1ada de rigidez de cuello?",
+        "\xBFPresenta confusi\xF3n, somnolencia o p\xE9rdida de conciencia?",
+        "\xBFTuvo convulsiones?",
+        "\xBFSufri\xF3 un traumatismo en la cabeza recientemente?",
+        "\xBFPresenta v\xF3mitos repetidos junto con un dolor de cabeza?"
+      ],
+      en: [
+        "Did the pain begin suddenly and reach maximum intensity within seconds or minutes?",
+        "Is this the worst headache you have ever experienced?",
+        "Do you have weakness or loss of sensation in an arm, leg, or one side of the face?",
+        "Are you having difficulty speaking, understanding, or walking?",
+        "Have you had sudden vision loss, double vision, or another sudden visual change?",
+        "Do you have a fever accompanied by a stiff neck?",
+        "Are you experiencing confusion, drowsiness, or loss of consciousness?",
+        "Have you had a seizure?",
+        "Have you recently had a head injury?",
+        "Are you experiencing repeated vomiting along with a headache?"
+      ]
+    },
+    emergencyChecklist: {
+      es: [
+        "Activar Alarma Roja en m\xF3dulo m\xE9dico.",
+        "Avisar a Control en Tierra (Telemetr\xEDa m\xE9dica prioritaria).",
+        "Realizar evaluaci\xF3n neurol\xF3gica completa.",
+        "Proceder con estabilizaci\xF3n del tripulante.",
+        "Coordinar atenci\xF3n m\xE9dica urgente / evacuaci\xF3n si aplica."
+      ],
+      en: [
+        "Activate the Red Alert in the medical module.",
+        "Notify Ground Control (priority medical telemetry).",
+        "Perform a complete neurological assessment.",
+        "Proceed with crew-member stabilization.",
+        "Coordinate urgent medical care / evacuation if applicable."
+      ]
+    },
+    specificQuestions: {
+      frontal: {
+        es: [
+          "\xBFSiente presi\xF3n en la frente o sobre las cejas?",
+          "\xBFEl dolor se extiende hacia detr\xE1s de los ojos?",
+          "\xBFTiene congesti\xF3n nasal o secreci\xF3n nasal?",
+          "\xBFSiente presi\xF3n o dolor en la cara?",
+          "\xBFEl dolor aumenta cuando se inclina hacia adelante?",
+          "\xBFPresenta sensibilidad a la luz o al ruido?",
+          "\xBFTiene n\xE1useas o v\xF3mitos?",
+          "\xBFHa pasado muchas horas frente a pantallas o realizando tareas visuales?",
+          "\xBFTiene visi\xF3n borrosa o fatiga ocular?"
+        ],
+        en: [
+          "Do you feel pressure in your forehead or above your eyebrows?",
+          "Does the pain spread behind your eyes?",
+          "Do you have nasal congestion or a runny nose?",
+          "Do you feel pressure or pain in your face?",
+          "Does the pain worsen when you lean forward?",
+          "Are you sensitive to light or noise?",
+          "Do you have nausea or vomiting?",
+          "Have you spent many hours looking at screens or doing visual tasks?",
+          "Do you have blurred vision or eye strain?"
+        ]
+      },
+      temporal: {
+        es: [
+          "\xBFEl dolor se encuentra en una o ambas sienes?",
+          "\xBFSiente pulsaciones en la zona temporal?",
+          "\xBFEl dolor se extiende hacia la parte superior de la cabeza?",
+          "\xBFPresenta sensibilidad al tocarse la sien?",
+          "\xBFSiente dolor al masticar?",
+          "\xBFTiene n\xE1useas o sensibilidad a la luz y al ruido?",
+          "\xBFEl dolor aparece en episodios o es continuo?",
+          "\xBFPresenta lagrimeo, enrojecimiento ocular o congesti\xF3n nasal del mismo lado?",
+          "\xBFEl dolor interfiere con sus actividades habituales?"
+        ],
+        en: [
+          "Is the pain in one or both temples?",
+          "Do you feel a throbbing sensation in the temporal area?",
+          "Does the pain spread to the top of your head?",
+          "Is your temple sensitive to touch?",
+          "Does it hurt when you chew?",
+          "Do you have nausea or sensitivity to light and noise?",
+          "Does the pain occur in episodes or is it continuous?",
+          "Do you have tearing, eye redness, or nasal congestion on the same side?",
+          "Does the pain interfere with your usual activities?"
+        ]
+      },
+      occipital: {
+        es: [
+          "\xBFEl dolor comienza en la nuca y asciende hacia la parte posterior de la cabeza?",
+          "\xBFSe extiende hacia uno o ambos lados?",
+          "\xBFTiene dolor o rigidez cervical?",
+          "\xBFEmpeora al girar o mover el cuello?",
+          "\xBFSiente pinchazos o descargas el\xE9ctricas en la parte posterior de la cabeza?",
+          "\xBFPasa muchas horas en una misma posici\xF3n?",
+          "\xBFEl dolor aumenta al mantener una postura determinada?",
+          "\xBFPresenta mareos o alteraciones visuales?"
+        ],
+        en: [
+          "Does the pain start in your nape and move up the back of your head?",
+          "Does it spread to one or both sides?",
+          "Do you have neck pain or stiffness?",
+          "Does it worsen when you turn or move your neck?",
+          "Do you feel stabbing pain or electric shocks at the back of your head?",
+          "Do you spend many hours in the same position?",
+          "Does the pain increase when you maintain a particular posture?",
+          "Do you have dizziness or visual changes?"
+        ]
+      }
     }
   };
 
@@ -35099,6 +35295,18 @@ void main() {
   var anchorLocal = null;
   var focusMode = false;
   var labelLeft = null;
+  var createTriageState = () => ({
+    step: "region",
+    region: null,
+    redFlagIndex: 0,
+    redFlagResponses: [],
+    positiveRedFlags: [],
+    specificIndex: 0,
+    specificResponses: [],
+    completedChecklist: /* @__PURE__ */ new Set()
+  });
+  var triageState = createTriageState();
+  var triagePartId = null;
   function glassify(mat) {
     mat.userData.glass = { value: 0 };
     mat.onBeforeCompile = (sh) => {
@@ -35187,6 +35395,7 @@ void main() {
     applyStatic();
     buildSystemsUI();
     renderInfo();
+    renderTriagePanel();
     applyOpacity();
     const total = Object.values(DATA2.files).reduce((a, f) => a + f.bytes, 0);
     const upd = () => {
@@ -35294,6 +35503,7 @@ void main() {
       $("#label .ls").textContent = [SYS[c.s].n, SIDE[PARTS[selected].p.sd]].filter(Boolean).join(" \xB7 ");
     }
     renderInfo();
+    renderTriagePanel();
     refreshListStates();
     if ($("#q").value) $("#q").dispatchEvent(new Event("input"));
   }
@@ -35508,6 +35718,10 @@ void main() {
       card.append(top, status, metrics);
       card.addEventListener("click", () => {
         activeCrew = member.initials;
+        if (selected && isHeadPart(selected)) {
+          triageState = createTriageState();
+          renderTriagePanel();
+        }
         list.querySelectorAll(".crew-card").forEach((button) => {
           const selected2 = button === card;
           button.setAttribute("aria-pressed", String(selected2));
@@ -35681,6 +35895,7 @@ void main() {
   });
   function renderInfo() {
     const box = $("#info");
+    if (!box) return;
     if (!selected) {
       box.innerHTML = `<div class="empty" style="display:flex;flex-direction:column;gap:14px">
       <div class="eyebrow">${t("howTo")}</div>
@@ -35704,6 +35919,165 @@ void main() {
     box.querySelector("#focusmode").addEventListener("change", (e) => {
       focusMode = e.target.checked;
       applyOpacity();
+    });
+  }
+  function isHeadPart(id) {
+    const P = PARTS[id], concept = P && BASE_CONC[P.p.c];
+    if (!concept) return false;
+    const group = norm(concept.g);
+    return group === "craneo" || group.startsWith("cabeza:") || group === "dorso: musculos suboccipitales";
+  }
+  function triageTexts(values) {
+    return values[lang] || values.es;
+  }
+  function triageQuestionView(question, index, total, answerLabels, progress2) {
+    return `<div class="triage-count"><span>${t("triageQuestionLabel", index + 1, total)}</span><strong>${t("triagePositiveCount", triageState.positiveRedFlags.length)}</strong></div>
+    <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress2}"><i style="width:${progress2}%"></i></div>
+    <div class="triage-question"><span class="triage-step">${esc(t("triagePhase1"))} \xB7 ${index + 1}</span><p>${esc(question)}</p></div>
+    <div class="triage-answers">
+      <button class="triage-answer" type="button" data-triage-answer="yes">${esc(answerLabels[0])}</button>
+      <button class="triage-answer" type="button" data-triage-answer="no">${esc(answerLabels[1])}</button>
+    </div>`;
+  }
+  function renderTriagePanel() {
+    const box = $("#triage");
+    if (!box) return;
+    if (!selected || !isHeadPart(selected)) {
+      triagePartId = null;
+      triageState = createTriageState();
+      box.innerHTML = `<section class="triage">
+      <div class="triage-head"><h2>${t("triageTitle")}</h2>
+      <p>${t(selected ? "triageHeadRequired" : "triageIntro")}</p></div>
+      <p class="triage-disclaimer">${t("triageDisclaimer")}</p>
+    </section>`;
+      return;
+    }
+    if (triagePartId !== selected) {
+      triagePartId = selected;
+      triageState = createTriageState();
+    }
+    const region = triageState.region && TRIAGE_PROTOCOL.regions[triageState.region];
+    let content = "";
+    if (triageState.step === "region") {
+      const regionChoices = Object.entries(TRIAGE_PROTOCOL.regions).map(([id, data]) => `<button class="triage-region" type="button" data-triage-region="${id}">
+        <span>${esc(data.code)} // ${esc(triageTexts(data.title).toUpperCase())}</span>
+        <strong>${esc(triageTexts(data.title))}</strong>
+        <small>${esc(triageTexts(data.description))}</small>
+        <small>${t("triageStart")} \u2192</small>
+      </button>`).join("");
+      content = `<span class="triage-step">${t("triageLocationStep")}</span>
+      <h2>${t("triageChooseRegion")}</h2><p>${t("triageChooseRegionHint")}</p>
+      <div class="triage-regions">${regionChoices}</div>`;
+    } else if (triageState.step === "redFlags") {
+      const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+      const index = triageState.redFlagIndex;
+      const percent = Math.round((index + 1) / questions.length * 100);
+      content = `<div class="triage-head"><span class="triage-step">${t("triagePhase1")}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+      ${triageQuestionView(questions[index], index, questions.length, [t("triageYes"), t("triageNo")], percent)}
+      <div class="triage-nav"><button type="button" data-triage-back>${t("triagePrevious")}</button><span class="triage-note">${t("triageEmergencyThreshold")}</span></div>`;
+    } else if (triageState.step === "emergency") {
+      const checklist = triageTexts(TRIAGE_PROTOCOL.emergencyChecklist).map((text, index) => {
+        const checked = triageState.completedChecklist.has(index);
+        return `<button type="button" class="triage-check" data-triage-check="${index}" aria-pressed="${checked}">
+        <span aria-hidden="true">${checked ? "\u2713" : index + 1}</span><span>${esc(text)}</span>
+      </button>`;
+      }).join("");
+      content = `<div class="triage-alert"><span class="triage-step">${t("triageEmergencyHeading")}</span>
+        <h2>${t("triageEmergencyHeading")}</h2><p>${t("triageEmergencyBody")}</p>
+      </div>
+      <div><p><strong>${t("triagePositiveCount", triageState.positiveRedFlags.length)}</strong></p>
+        <ul class="triage-summary">${triageState.positiveRedFlags.map((text) => `<li>${esc(text)}</li>`).join("")}</ul>
+      </div>
+      <div><span class="triage-step">${t("triageEmergencyActions")}</span><div class="triage-checklist">${checklist}</div></div>
+      <button class="triage-action" type="button" data-triage-reset>${t("triageNewEvaluation")}</button>`;
+    } else if (triageState.step === "specific") {
+      const questions = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]);
+      const index = triageState.specificIndex;
+      const question = questions[index];
+      const percent = Math.round((index + 1) / questions.length * 100);
+      const answers = triageState.region === "temporal" && index === 6 ? [t("triageEpisodes"), t("triageContinuous")] : [t("triageYes"), t("triageNo")];
+      content = `<div class="triage-head"><span class="triage-step">${t("triagePhase2")}</span><h2>${esc(triageTexts(region.title))}</h2></div>
+      <div class="triage-count"><span>${t("triageQuestionLabel", index + 1, questions.length)}</span><strong>${esc(region.code)}</strong></div>
+      <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+      <div class="triage-question"><span class="triage-step">${t("triagePhase2")} \xB7 Q${index + 1}</span><p>${esc(question)}</p></div>
+      <div class="triage-answers"><button class="triage-answer" type="button" data-triage-answer="yes">${esc(answers[0])}</button>
+        <button class="triage-answer" type="button" data-triage-answer="no">${esc(answers[1])}</button></div>
+      <div class="triage-nav"><button type="button" data-triage-back>${t("triagePrevious")}</button><span class="triage-note">${t("triageChooseRegionHint")}</span></div>`;
+    } else {
+      const flags = triageTexts(TRIAGE_PROTOCOL.redFlags);
+      const specific = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]);
+      const summary = [
+        ...flags.map((question, index) => [question, triageState.redFlagResponses[index]]),
+        ...specific.map((question, index) => [question, triageState.specificResponses[index]])
+      ];
+      content = `<div class="triage-done"><span class="triage-step">${esc(region.code)}</span>
+        <h2>${t("triageCompleteHeading")}</h2><p>${t("triageCompleteBody")}</p></div>
+      <ul class="triage-summary">${summary.map(([question, answer]) => `<li><strong>${esc(question)}</strong><br>${answer ? t("triageResponseYes") : t("triageResponseNo")}</li>`).join("")}</ul>
+      <button class="triage-action" type="button" data-triage-reset>${t("triageNewEvaluation")}</button>`;
+    }
+    const panelHeading = region ? triageTexts(region.title) : t("triageTitle");
+    box.innerHTML = `<section class="triage">
+    <div class="triage-head"><h2>${esc(panelHeading)}</h2></div>
+    <p class="triage-disclaimer">${t("triageDisclaimer")}</p>${content}
+  </section>`;
+    box.querySelectorAll("[data-triage-region]").forEach((button) => button.addEventListener("click", () => {
+      triageState = createTriageState();
+      triageState.region = button.dataset.triageRegion;
+      triageState.step = "redFlags";
+      renderTriagePanel();
+    }));
+    box.querySelectorAll("[data-triage-answer]").forEach((button) => button.addEventListener("click", () => {
+      const answer = button.dataset.triageAnswer === "yes";
+      if (triageState.step === "redFlags") {
+        const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+        triageState.redFlagResponses[triageState.redFlagIndex] = answer;
+        triageState.positiveRedFlags = triageState.redFlagResponses.map((value, index) => value ? questions[index] : null).filter(Boolean);
+        if (triageState.positiveRedFlags.length >= 3) {
+          triageState.step = "emergency";
+        } else if (triageState.redFlagIndex < questions.length - 1) {
+          triageState.redFlagIndex++;
+        } else {
+          triageState.step = "specific";
+        }
+      } else {
+        triageState.specificResponses[triageState.specificIndex] = answer;
+        const total = triageTexts(TRIAGE_PROTOCOL.specificQuestions[triageState.region]).length;
+        if (triageState.specificIndex < total - 1) triageState.specificIndex++;
+        else triageState.step = "complete";
+      }
+      renderTriagePanel();
+    }));
+    box.querySelector("[data-triage-back]")?.addEventListener("click", () => {
+      if (triageState.step === "redFlags") {
+        if (triageState.redFlagIndex > 0) {
+          triageState.redFlagResponses.splice(triageState.redFlagIndex);
+          triageState.redFlagIndex--;
+          const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+          triageState.positiveRedFlags = triageState.redFlagResponses.map((value, index) => value ? questions[index] : null).filter(Boolean);
+        } else {
+          triageState.step = "region";
+          triageState.region = null;
+        }
+      } else if (triageState.specificIndex > 0) {
+        triageState.specificIndex--;
+      } else {
+        triageState.step = "redFlags";
+        triageState.redFlagIndex = TRIAGE_PROTOCOL.redFlags.es.length - 1;
+        triageState.redFlagResponses.splice(triageState.redFlagIndex);
+        const questions = triageTexts(TRIAGE_PROTOCOL.redFlags);
+        triageState.positiveRedFlags = triageState.redFlagResponses.map((value, index) => value ? questions[index] : null).filter(Boolean);
+      }
+      renderTriagePanel();
+    });
+    box.querySelectorAll("[data-triage-check]").forEach((button) => button.addEventListener("click", () => {
+      const index = Number(button.dataset.triageCheck);
+      if (triageState.completedChecklist.has(index)) triageState.completedChecklist.delete(index);
+      else triageState.completedChecklist.add(index);
+      renderTriagePanel();
+    }));
+    box.querySelector("[data-triage-reset]")?.addEventListener("click", () => {
+      triageState = createTriageState();
+      renderTriagePanel();
     });
   }
   function select(id, hitPoint, fly2) {
@@ -35732,6 +36106,7 @@ void main() {
     $("#label .ln").textContent = c.n;
     $("#label .ls").textContent = [SYS[c.s].n, SIDE[P.p.sd]].filter(Boolean).join(" \xB7 ");
     renderInfo();
+    renderTriagePanel();
     refreshListStates();
     applyOpacity();
     if (fly2) {
@@ -35751,6 +36126,7 @@ void main() {
     selected = null;
     anchorLocal = null;
     renderInfo();
+    renderTriagePanel();
     refreshListStates();
     applyOpacity();
   }
