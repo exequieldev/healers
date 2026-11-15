@@ -228,7 +228,7 @@ const CREW = [
     {id:'sleep', value:'6.1'},
   ]},
   {initials:'BE', name:'B. EITNER', activityKey:'activityBio', statusType:'caution', metrics:[
-    {id:'heartRate', labelKey:'metricHeartRate', value:null, unit:'BPM', quality:'stale', lastValidAt:'2026-11-15T10:45:00-03:00'},
+    {id:'heartRate', labelKey:'metricHeartRate', value:null, unit:'BPM', quality:'stale'},
     {id:'spo2', labelKey:'metricSpo2', value:'97', unit:'%'},
     {id:'temperature', labelKey:'metricTemperature', value:'36.7', unit:'°C'},
   ], telemetryMetrics:[
@@ -269,14 +269,6 @@ const SIMULATION_PROFILES = {
 const SIMULATION_INTERVAL = 4000;
 const ECG_PATH = 'M0 16H9L13 14L17 18L22 16H31L35 13L39 17L43 2L48 29L53 12L57 16H67L72 14L76 17L80 15L85 16H95L99 13L103 17L107 15L111 16H120';
 let simulationStep = 0;
-function formatCrewTimestamp(value){
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) throw new Error(`Marca de tiempo de telemetría inválida: ${value}`);
-  const locale = lang === 'es' ? 'es-AR' : 'en-US';
-  const datePart = new Intl.DateTimeFormat(locale, {day:'2-digit', month:'2-digit', year:'2-digit'}).format(date);
-  const timePart = new Intl.DateTimeFormat(locale, {hour:'2-digit', minute:'2-digit', hourCycle:'h23'}).format(date);
-  return `${datePart} ${timePart}`;
-}
 function overflowMetricValue(value){
   const match = /^([+-]?)(\d+)(\.\d+)?(\s.*)?$/.exec(value);
   if (!match) return '***';
@@ -326,10 +318,9 @@ function createTelemetryCard(definition, reading){
     value.classList.add('stale');
     value.append(document.createTextNode('***'));
     note.classList.add('stale');
-    note.textContent = `${t('noSignal')} · ${t('lastValidReading', formatCrewTimestamp(reading.lastValidAt))}`;
+    note.textContent = t('noSignal');
   } else if (reading && reading.value != null){
     value.append(document.createTextNode(String(reading.value)));
-    note.textContent = t('baselineUnavailable');
   } else {
     value.classList.add('unavailable');
     value.append(document.createTextNode('—'));
@@ -344,7 +335,7 @@ function createTelemetryCard(definition, reading){
     card.classList.add('telemetry-card--heart-rate');
     card.append(createECGTrace(reading));
   }
-  card.append(note);
+  if (note.textContent) card.append(note);
   return card;
 }
 function renderTelemetry(){
