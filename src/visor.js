@@ -12,6 +12,33 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 
+// Las regiones se definen sobre los metadatos de cada pieza, no sobre escenas
+// separadas, para poder añadir nuevas zonas sin duplicar el visor.
+const REGION_CONFIG = {
+  CABEZA: {
+    minDistance: 0.18, maxDistance: 1.8,
+    filters: {
+      names: ['craneo', 'facial', 'encefalo', 'cerebro', 'ojo', 'orbita', 'oreja',
+        'auricular', 'auditivo', 'oido', 'vestibular', 'senos',
+        'nasal', 'maxilar', 'mandibula', 'frontal', 'parietal', 'temporal', 'occipital',
+        'esfenoide', 'etmoide', 'lagrimal', 'masticador', 'lengua', 'faringe', 'laringe',
+        'cervical', 'cuello'],
+      categories: ['cabeza', 'cara', 'facial', 'encefalo', 'cerebro', 'ojo', 'orbita',
+        'oreja', 'auricular', 'auditivo', 'organos de los sentidos', 'senos', 'masticacion',
+        'cuello', 'cervical']
+    }
+  },
+  TORAX: {
+    minDistance: 0.35, maxDistance: 2.4,
+    filters: {
+      names: ['torax', 'pecho', 'costilla', 'esternon', 'clavicula', 'vertebra toracica',
+        'pulmon', 'corazon', 'mediastino', 'diafragma', 'mama', 'pectoral'],
+      categories: ['torax', 'respiratorio', 'cardiovascular', 'costal', 'pectoral']
+    }
+  },
+  CUERPO_COMPLETO: { minDistance: 0.12, maxDistance: 7, filters: null }
+};
+
 // ---------------------------------------------------------------- idioma
 // Español: texto base en data/anatomia.js. Otros idiomas: capa de traducción en data/anatomia.<código>.js
 // (window.ANAT_I18N[código] = {systems:{k:{n,d}}, concepts:[[nombre, grupo, descripción, hechos], …]}, mismo orden que concepts).
@@ -86,6 +113,8 @@ const hiddenParts = new Set();
 let isolated = null;   // Set de ids o null
 let selected = null, anchorLocal = null, focusMode = false;
 let labelLeft = null;   // lado de la etiqueta; con margen para que no parpadee si el punto queda en el centro
+let activeRegion = null;
+let regionVisibleIds = null;
 
 function glassify(mat){
   mat.userData.glass = {value: 0};
@@ -122,8 +151,51 @@ function applyOpacity(){
     m.depthWrite = !tr; m.userData.glass.value = tr ? 1 : 0;
   }
 }
+function matchesRegion(id, config){
+  if (!config.filters) return true;
+  const P = PARTS[id]; if (!P || !CONC) return false;
+  const c = CONC[P.p.c];
+  const base = BASE_CONC && BASE_CONC[P.p.c];
+  const text = norm([c.n, c.g, base && base.n, base && base.g, P.p.en].filter(Boolean).join(' '));
+  const category = norm([c.g, base && base.g].filter(Boolean).join(' '));
+  return config.filters.names.some(term => text.includes(norm(term))) ||
+    config.filters.categories.some(term => category.includes(norm(term)));
+}
+function setAnatomyRegion(regionKey){
+  const key = String(regionKey || '').toUpperCase();
+  const config = REGION_CONFIG[key];
+  if (!config){ console.warn('Región anatómica desconocida:', regionKey); return false; }
+  activeRegion = key;
+  regionVisibleIds = new Set(Object.keys(PARTS).filter(id => matchesRegion(id, config)));
+  scene.traverse(object => {
+    if (object.isMesh && object.userData.id) object.visible = regionVisibleIds.has(object.userData.id);
+  });
+  applyVisibility();
+  const box = new THREE.Box3();
+  scene.traverse(object => {
+    if (object.isMesh && object.visible && object.userData.id) box.expandByObject(object);
+  });
+  if (!box.isEmpty()){
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3()).length();
+    const distance = THREE.MathUtils.clamp(size * 2.2, config.minDistance, config.maxDistance);
+    controls.minDistance = config.minDistance;
+    controls.maxDistance = config.maxDistance;
+    controls.target.copy(center);
+    flyTo(center.clone().add(new THREE.Vector3(0, 0, distance)), center);
+  } else {
+    controls.minDistance = config.minDistance;
+    controls.maxDistance = config.maxDistance;
+  }
+  return true;
+}
+window.setAnatomyRegion = setAnatomyRegion;
+window.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SET_REGION') setAnatomyRegion(event.data.region);
+});
 function isVisible(id){
   const P = PARTS[id]; const c = CONC[P.p.c];
+  if (regionVisibleIds && !regionVisibleIds.has(id)) return false;
   if (isolated) return isolated.has(id);
   return sysState[c.s].on && !hiddenGroups.has(c.s + '|' + c.gk) && !hiddenParts.has(id);
 }
@@ -176,6 +248,7 @@ async function boot(){
     } catch (err) { $('#err').hidden = false; $('#err').textContent = t('errSystem', SYS[sk].n); console.error(err); }
   }));
   applyOpacity();
+  setAnatomyRegion('CABEZA');
   $('#ltxt').textContent = t('modelDone'); setTimeout(()=>$('#loader').classList.add('done'), 700);
 }
 
@@ -319,6 +392,7 @@ function renderInfo(){
 // ---------------------------------------------------------------- selección
 function select(id, hitPoint, fly){
   const P = PARTS[id]; if (!P || !P.mesh) return;
+  if (regionVisibleIds && !regionVisibleIds.has(id)) return;
   if (selected && PARTS[selected].mesh) PARTS[selected].mesh.material = materialFor(CONC[PARTS[selected].p.c].s, PARTS[selected].p.col);
   selected = id; labelLeft = null;
   const c = CONC[P.p.c];
@@ -382,7 +456,7 @@ function pick(x, y){
   ndc.set((x - r.left)/r.width*2-1, -(y - r.top)/r.height*2+1);
   ray.setFromCamera(ndc, camera);
   const objs = []; for (const id in PARTS){ const m = PARTS[id].mesh; if (m && m.visible) objs.push(m); }
-  const hits = ray.intersectObjects(objs, false);
+  const hits = ray.intersectObjects(objs, false).filter(h => h.object.visible);
   // ignorar capas muy transparentes (< 15 %) para poder «atravesarlas»
   // capas semitransparentes (p. ej. la piel en modo fantasma) solo se seleccionan si no hay nada opaco detrás
   const ok = (h, min) => h.object.material === hlMat || h.object.material.opacity >= min;
