@@ -35309,26 +35309,41 @@ void main() {
       { id: "heartRate", labelKey: "metricHeartRate", value: "72", unit: "BPM" },
       { id: "spo2", labelKey: "metricSpo2", value: "98", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "36.8", unit: "\xB0C" }
+    ], telemetryMetrics: [
+      { id: "respiratoryRate", value: "16" },
+      { id: "sleep", value: "7.2" }
     ] },
     { initials: "LC", name: "L. CHILAVERT", activityKey: "activityEva", statusType: "warning", metrics: [
       { id: "heartRate", labelKey: "metricHeartRate", value: "98", unit: "BPM" },
       { id: "spo2", labelKey: "metricSpo2", value: "96", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "37.1", unit: "\xB0C" }
+    ], telemetryMetrics: [
+      { id: "respiratoryRate", value: "18" },
+      { id: "sleep", value: "6.1" }
     ] },
     { initials: "BE", name: "B. EITNER", activityKey: "activityBio", statusType: "caution", metrics: [
       { id: "heartRate", labelKey: "metricHeartRate", value: null, unit: "BPM", quality: "stale", lastValidAt: "2026-11-15T10:45:00-03:00" },
       { id: "spo2", labelKey: "metricSpo2", value: "97", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "36.7", unit: "\xB0C" }
+    ], telemetryMetrics: [
+      { id: "respiratoryRate", value: "17" },
+      { id: "sleep", value: "7.8" }
     ] },
     { initials: "LP", name: "L. PERGHER", activityKey: "activityRest", statusType: "caution", metrics: [
       { id: "heartRate", labelKey: "metricHeartRate", value: "66", unit: "BPM" },
       { id: "spo2", labelKey: "metricSpo2", value: "99", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "36.5", unit: "\xB0C" }
+    ], telemetryMetrics: [
+      { id: "respiratoryRate", value: "14" },
+      { id: "sleep", value: "8.1" }
     ] },
     { initials: "ED", name: "E. DIAZ", activityKey: "activityCabin", statusType: "normal", metrics: [
       { id: "heartRate", labelKey: "metricHeartRate", value: "74", unit: "BPM" },
       { id: "spo2", labelKey: "metricSpo2", value: "98", unit: "%" },
       { id: "temperature", labelKey: "metricTemperature", value: "36.6", unit: "\xB0C" }
+    ], telemetryMetrics: [
+      { id: "respiratoryRate", value: "15" },
+      { id: "sleep", value: "6.9" }
     ] }
   ];
   var activeCrew = CREW[0].initials;
@@ -35341,6 +35356,7 @@ void main() {
   ];
   var SIMULATION_PROFILES = {
     heartRate: { offsets: [0, 1, 2, 1, 0, -1, -2, -1], decimals: 0 },
+    respiratoryRate: { offsets: [0, 1, 0, -1, 0, 0, 1, 0], decimals: 0 },
     spo2: { offsets: [0, 0, -1, 0, 1, 0, 0, -1], decimals: 0 },
     temperature: { offsets: [0, 0, 0.1, 0.1, 0, -0.1, -0.1, 0], decimals: 1 }
   };
@@ -35429,7 +35445,7 @@ void main() {
     const member = CREW.find((person) => person.initials === activeCrew);
     if (!member) throw new Error(`Tripulante activo no encontrado: ${activeCrew}`);
     $("#telemetry-subject").textContent = member.name;
-    const metrics = new Map(member.metrics.map((metric) => [metric.id, metric]));
+    const metrics = new Map([...member.metrics, ...member.telemetryMetrics].map((metric) => [metric.id, metric]));
     const vitals = $("#telemetry-vitals");
     vitals.replaceChildren(...TELEMETRY_VITALS.map((definition) => createTelemetryCard(definition, metrics.get(definition.id))));
     positionTelemetryInfo();
@@ -35527,7 +35543,7 @@ void main() {
     simulationStep++;
     CREW.forEach((member) => {
       const crewCard = document.querySelector(`.crew-card[data-crew="${member.initials}"]`);
-      member.metrics.forEach((metric) => {
+      [...member.metrics, ...member.telemetryMetrics].forEach((metric) => {
         const profile = SIMULATION_PROFILES[metric.id];
         if (!profile || metric.quality === "stale" || metric.value == null) return;
         metric.baseValue ?? (metric.baseValue = Number(metric.value));
