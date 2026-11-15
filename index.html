@@ -52,7 +52,13 @@ button{font:inherit;color:inherit}
 .telemetry-section h3{margin:0;color:var(--mut);font:600 10px/1.2 var(--sans);letter-spacing:.03em;text-transform:uppercase}
 .telemetry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .telemetry-card{display:flex;min-width:0;box-sizing:border-box;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 9px;background:#090e13;border:1px solid #293541;border-radius:8px;text-align:center}
-.telemetry-label{width:100%;color:var(--mut);font:9.5px/1.2 var(--sans);text-align:center}
+.telemetry-label{display:flex;width:100%;align-items:center;justify-content:center;gap:5px;color:var(--mut);font:9.5px/1.2 var(--sans);text-align:center}
+.telemetry-icon{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.telemetry-icon--heartRate{color:#ff647c}
+.telemetry-icon--respiratoryRate{color:#65d8ff}
+.telemetry-icon--spo2{color:#55c7ff}
+.telemetry-icon--temperature{color:#ffad5c}
+.telemetry-icon--sleep{color:#b69cff}
 .telemetry-value{display:flex;align-items:baseline;justify-content:center;gap:4px;color:var(--tx);font:600 21px/1.1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .telemetry-value.stale{color:var(--caution)}
 .telemetry-value.unavailable{color:var(--mut)}
@@ -147,7 +153,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 .crew-status svg{width:12px;height:12px;flex:none;color:var(--state)}
 .crew-card[data-status="warning"] .crew-status{width:max-content;padding:3px 6px;border:1px solid rgba(255,59,59,.55);border-radius:4px;background:rgba(255,59,59,.2);color:#fff;font-weight:700;letter-spacing:.04em}
 .crew-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line);padding-top:5px}
-.crew-metric-label{display:block;color:var(--mut);font:8px var(--mono);letter-spacing:.02em}
+.crew-metric-label{display:flex;align-items:center;gap:3px;color:var(--mut);font:8px var(--mono);letter-spacing:.02em}
+.crew-metric-label .telemetry-icon{width:10px;height:10px}
 .crew-metric-value{display:block;max-width:100%;margin-top:1px;overflow:hidden;color:#f2f5f7;font:600 10px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .crew-metric-value.stale{color:var(--caution)}
 

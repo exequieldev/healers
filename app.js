@@ -35615,6 +35615,13 @@ void main() {
     { id: "temperature", labelKey: "metricTemperature", unit: "\xB0C" },
     { id: "sleep", labelKey: "metricSleep", unit: "h" }
   ];
+  var TELEMETRY_ICON_PATHS = {
+    heartRate: ["M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"],
+    respiratoryRate: ["M12 3v8", "M10 5v4c-1.5-.8-3-1-4-.5-2 .8-3 3.7-3 6.5 0 3.5 2 5.5 5 4.5 2-.7 3-2.5 3-5v-2", "M14 5v4c1.5-.8 3-1 4-.5 2 .8 3 3.7 3 6.5 0 3.5-2 5.5-5 4.5-2-.7-3-2.5-3-5v-2"],
+    spo2: ["M12 3s-6 7.1-6 11a6 6 0 0 0 12 0c0-3.9-6-11-6-11Z", "M8.5 14h2l1.2-2 1.5 4 1.1-2h1.2"],
+    temperature: ["M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0Z", "M12 11v5"],
+    sleep: ["M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z"]
+  };
   var SIMULATION_PROFILES = {
     heartRate: { offsets: [0, 1, 2, 1, 0, -1, -2, -1], decimals: 0 },
     respiratoryRate: { offsets: [0, 1, 0, -1, 0, 0, 1, 0], decimals: 0 },
@@ -35628,6 +35635,19 @@ void main() {
     const match = /^([+-]?)(\d+)(\.\d+)?(\s.*)?$/.exec(value);
     if (!match) return "***";
     return `${match[1]}***${match[3] ? `.${"*".repeat(match[3].length - 1)}` : ""}${match[4] || ""}`;
+  }
+  function createTelemetryIcon(metricId) {
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("class", `telemetry-icon telemetry-icon--${metricId}`);
+    icon.setAttribute("aria-hidden", "true");
+    icon.setAttribute("focusable", "false");
+    TELEMETRY_ICON_PATHS[metricId].forEach((pathData) => {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", pathData);
+      icon.append(path);
+    });
+    return icon;
   }
   function fitCrewMetrics(card) {
     card.querySelectorAll(".crew-metric-value").forEach((value) => {
@@ -35664,7 +35684,7 @@ void main() {
     card.dataset.metricId = definition.id;
     const label = document.createElement("span");
     label.className = "telemetry-label";
-    label.textContent = t(definition.labelKey);
+    label.append(createTelemetryIcon(definition.id), document.createTextNode(t(definition.labelKey)));
     const value = document.createElement("span");
     value.className = "telemetry-value";
     const note = document.createElement("span");
@@ -35760,7 +35780,7 @@ void main() {
         metric.dataset.metricId = metricData.id;
         const metricLabel = document.createElement("span");
         metricLabel.className = "crew-metric-label";
-        metricLabel.textContent = t(metricData.labelKey);
+        metricLabel.append(createTelemetryIcon(metricData.id), document.createTextNode(t(metricData.labelKey)));
         const metricValue = document.createElement("span");
         metricValue.className = "crew-metric-value";
         const stale = metricData.quality === "stale" || metricData.value == null;
