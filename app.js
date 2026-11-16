@@ -34912,7 +34912,6 @@ void main() {
       triageBodySystem: (system) => `SISTEMA \xB7 ${system.toUpperCase()}`,
       triageBodyPhase1: "PASO 1 \xB7 S\xCDNTOMA PRINCIPAL",
       triageBodyPhase2: "PASO 2 \xB7 PREGUNTAS RELACIONADAS",
-      triageBodyComplete: "Evaluaci\xF3n de simulaci\xF3n completada.",
       triageLocationStep: "PASO 1 \xB7 LOCALIZACI\xD3N ANAT\xD3MICA",
       triageChooseRegion: "\xBFD\xF3nde se localiza el dolor de cabeza?",
       triageChooseRegionHint: "Seleccione la regi\xF3n craneal principal afectada para iniciar la evaluaci\xF3n guiada.",
@@ -35017,7 +35016,6 @@ void main() {
       triageBodySystem: (system) => `SYSTEM \xB7 ${system.toUpperCase()}`,
       triageBodyPhase1: "STEP 1 \xB7 MAIN SYMPTOM",
       triageBodyPhase2: "STEP 2 \xB7 RELATED QUESTIONS",
-      triageBodyComplete: "Simulation assessment complete.",
       triageLocationStep: "STEP 1 \xB7 ANATOMICAL LOCATION",
       triageChooseRegion: "Where is the headache located?",
       triageChooseRegionHint: "Select the main affected cranial region to start the guided assessment.",
@@ -36235,7 +36233,7 @@ void main() {
       let content2;
       if (isComplete) {
         content2 = `<div class="triage-done"><span class="triage-step">${t("triageBodySystem", SYS[concept.s].n)}</span>
-          <h2>${t("triageCompleteHeading")}</h2><p>${t("triageBodyComplete")}</p></div>
+          <h2>${t("triageCompleteHeading")}</h2></div>
         <ul class="triage-summary">${questions.map((question, index) => `<li><strong>${esc(question)}</strong><br>${triageState.bodyResponses[index] ? t("triageResponseYes") : t("triageResponseNo")}</li>`).join("")}</ul>
         <button class="triage-action" type="button" data-triage-reset>${t("triageNewEvaluation")}</button>`;
       } else {

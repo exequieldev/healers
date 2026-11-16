@@ -679,7 +679,7 @@ function renderTriagePanel(){
     let content;
     if (isComplete){
       content = `<div class="triage-done"><span class="triage-step">${t('triageBodySystem', SYS[concept.s].n)}</span>
-          <h2>${t('triageCompleteHeading')}</h2><p>${t('triageBodyComplete')}</p></div>
+          <h2>${t('triageCompleteHeading')}</h2></div>
         <ul class="triage-summary">${questions.map((question, index) => `<li><strong>${esc(question)}</strong><br>${triageState.bodyResponses[index] ? t('triageResponseYes') : t('triageResponseNo')}</li>`).join('')}</ul>
         <button class="triage-action" type="button" data-triage-reset>${t('triageNewEvaluation')}</button>`;
     } else {
