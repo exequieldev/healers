@@ -1,4 +1,160 @@
 export const TRIAGE_PROTOCOL = {
+  bodyQuestions: {
+    mus: {
+      es: [
+        '¿Siente dolor o molestia en esa zona?',
+        '¿El dolor empeora al moverla o usarla?',
+        '¿Ha notado hinchazón o sensibilidad al tocarla?',
+        '¿Tuvo un golpe o lesión reciente en esa zona?',
+      ],
+      en: [
+        'Do you feel pain or discomfort in that area?',
+        'Does the pain worsen when you move or use it?',
+        'Have you noticed swelling or tenderness when touched?',
+        'Have you had a recent impact or injury in that area?',
+      ],
+    },
+    esq: {
+      es: [
+        '¿Siente dolor o molestia cerca de esta estructura?',
+        '¿El dolor empeora al moverse o al cargar peso?',
+        '¿Ha notado hinchazón o sensibilidad al tocar la zona?',
+        '¿Tuvo una caída, golpe o lesión reciente?',
+      ],
+      en: [
+        'Do you feel pain or discomfort near this structure?',
+        'Does the pain worsen with movement or weight-bearing?',
+        'Have you noticed swelling or tenderness in the area?',
+        'Have you had a recent fall, impact, or injury?',
+      ],
+    },
+    teg: {
+      es: [
+        '¿Ha notado cambios recientes en la piel de esa zona?',
+        '¿Presenta picazón, enrojecimiento o irritación?',
+        '¿Hay una herida, ampolla o secreción?',
+        '¿La zona está hinchada, caliente o sensible?',
+      ],
+      en: [
+        'Have you noticed recent changes in the skin in that area?',
+        'Do you have itching, redness, or irritation?',
+        'Is there a wound, blister, or discharge?',
+        'Is the area swollen, warm, or tender?',
+      ],
+    },
+    ner: {
+      es: [
+        '¿Ha notado debilidad o pérdida de sensibilidad recientemente?',
+        '¿Tiene dificultad nueva para coordinar movimientos o mantener el equilibrio?',
+        '¿Ha tenido cambios repentinos en la visión, el habla o el estado de alerta?',
+        '¿Presenta dolor de cabeza intenso y de aparición repentina?',
+      ],
+      en: [
+        'Have you recently noticed weakness or loss of sensation?',
+        'Are you having new difficulty coordinating movements or keeping your balance?',
+        'Have you had sudden changes in vision, speech, or alertness?',
+        'Are you experiencing a severe, sudden-onset headache?',
+      ],
+    },
+    car: {
+      es: [
+        '¿Siente presión, dolor o molestia en el pecho?',
+        '¿Ha notado latidos irregulares o palpitaciones?',
+        '¿Presenta falta de aire, incluso en reposo?',
+        '¿Ha tenido mareos, desmayos o hinchazón en las piernas?',
+      ],
+      en: [
+        'Do you feel pressure, pain, or discomfort in your chest?',
+        'Have you noticed an irregular heartbeat or palpitations?',
+        'Are you short of breath, even at rest?',
+        'Have you had dizziness, fainting, or leg swelling?',
+      ],
+    },
+    res: {
+      es: [
+        '¿Le cuesta respirar o siente falta de aire?',
+        '¿Tiene tos nueva o persistente?',
+        '¿Siente silbidos o presión en el pecho al respirar?',
+        '¿Tiene fiebre o expulsa flema al toser?',
+      ],
+      en: [
+        'Are you having difficulty breathing or feeling short of breath?',
+        'Do you have a new or persistent cough?',
+        'Do you feel wheezing or chest tightness when breathing?',
+        'Do you have a fever or cough up mucus?',
+      ],
+    },
+    dig: {
+      es: [
+        '¿Tiene dolor o molestia abdominal?',
+        '¿Presenta náuseas, vómitos o dificultad para tragar?',
+        '¿Ha notado cambios recientes en sus deposiciones?',
+        '¿Ha observado sangre en el vómito o en las deposiciones?',
+      ],
+      en: [
+        'Do you have abdominal pain or discomfort?',
+        'Are you experiencing nausea, vomiting, or difficulty swallowing?',
+        'Have you noticed recent changes in your bowel movements?',
+        'Have you noticed blood in your vomit or bowel movements?',
+      ],
+    },
+    uri: {
+      es: [
+        '¿Siente dolor o ardor al orinar?',
+        '¿Ha notado que orina con más frecuencia o urgencia?',
+        '¿Ha cambiado el color o el aspecto de la orina?',
+        '¿Tiene dolor en la parte baja del abdomen o en la espalda, o fiebre?',
+      ],
+      en: [
+        'Do you feel pain or burning when urinating?',
+        'Have you noticed increased urinary frequency or urgency?',
+        'Has the color or appearance of your urine changed?',
+        'Do you have lower abdominal or back pain, or a fever?',
+      ],
+    },
+    rep: {
+      es: [
+        '¿Siente dolor o molestia en esta zona?',
+        '¿Ha notado hinchazón, bultos o cambios en la piel?',
+        '¿Presenta dolor o dificultad al orinar?',
+        '¿Ha notado secreción o algún cambio reciente que le preocupe?',
+      ],
+      en: [
+        'Do you feel pain or discomfort in this area?',
+        'Have you noticed swelling, lumps, or skin changes?',
+        'Do you have pain or difficulty when urinating?',
+        'Have you noticed discharge or any recent change that concerns you?',
+      ],
+    },
+    end: {
+      es: [
+        '¿Ha notado un cambio inusual en su nivel de energía?',
+        '¿Ha tenido cambios inexplicables de peso o de tolerancia al frío o al calor?',
+        '¿Tiene más sed u orina más de lo habitual?',
+        '¿Ha notado cambios recientes en el ritmo de sus latidos?',
+      ],
+      en: [
+        'Have you noticed an unusual change in your energy level?',
+        'Have you had unexplained weight changes or changes in how you tolerate cold or heat?',
+        'Are you thirstier or urinating more than usual?',
+        'Have you noticed recent changes in your heartbeat?',
+      ],
+    },
+    lin: {
+      es: [
+        '¿Ha notado ganglios o zonas hinchadas recientemente?',
+        '¿La zona hinchada duele o es sensible al tocarla?',
+        '¿Tiene fiebre o ha tenido infecciones recientes?',
+        '¿Ha tenido sudoración nocturna o pérdida de peso sin proponérselo?',
+      ],
+      en: [
+        'Have you recently noticed swollen lymph nodes or areas?',
+        'Is the swollen area painful or tender to touch?',
+        'Do you have a fever or have you had recent infections?',
+        'Have you had night sweats or unintentional weight loss?',
+      ],
+    },
+  },
   regions: {
     frontal: {
       code: 'ZONE-01',

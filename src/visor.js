@@ -95,6 +95,8 @@ const createTriageState = () => ({
   positiveRedFlags: [],
   specificIndex: 0,
   specificResponses: [],
+  bodyIndex: 0,
+  bodyResponses: [],
   completedChecklist: new Set(),
   selectedEmergencyStep: null,
 });
@@ -652,18 +654,66 @@ function triageQuestionView(question, index, total, answerLabels, progress){
 function renderTriagePanel(){
   const box = $('#triage');
   if (!box) return;
-  if (!selected || !isHeadPart(selected)){
+  if (!selected){
     triagePartId = null;
     triageState = createTriageState();
     box.innerHTML = `<section class="triage">
       <div class="triage-head"><h2>${t('triageTitle')}</h2>
-      <p>${t(selected ? 'triageHeadRequired' : 'triageIntro')}</p></div>
+      <p>${t('triageIntro')}</p></div>
     </section>`;
     return;
   }
   if (triagePartId !== selected){
     triagePartId = selected;
-    resetTriageForSelectedPart();
+    if (isHeadPart(selected)) resetTriageForSelectedPart();
+    else {
+      triageState = createTriageState();
+      triageState.step = 'body';
+    }
+  }
+  if (!isHeadPart(selected)){
+    const part = PARTS[selected], concept = CONC[part.p.c];
+    const systemQuestions = triageTexts(TRIAGE_PROTOCOL.bodyQuestions[concept.s]);
+    const questions = [t('triageBodyPrompt', concept.n), ...systemQuestions];
+    const isComplete = triageState.step === 'bodyComplete';
+    let content;
+    if (isComplete){
+      content = `<div class="triage-done"><span class="triage-step">${t('triageBodySystem', SYS[concept.s].n)}</span>
+          <h2>${t('triageCompleteHeading')}</h2><p>${t('triageBodyComplete')}</p></div>
+        <ul class="triage-summary">${questions.map((question, index) => `<li><strong>${esc(question)}</strong><br>${triageState.bodyResponses[index] ? t('triageResponseYes') : t('triageResponseNo')}</li>`).join('')}</ul>
+        <button class="triage-action" type="button" data-triage-reset>${t('triageNewEvaluation')}</button>`;
+    } else {
+      const index = triageState.bodyIndex;
+      const question = questions[index];
+      const percent = Math.round(((index + 1) / questions.length) * 100);
+      content = `<div class="triage-head"><span class="triage-step">${t(index === 0 ? 'triageBodyPhase1' : 'triageBodyPhase2')}</span></div>
+        <div class="triage-count"><span>${t('triageQuestionLabel', index + 1, questions.length)}</span><strong>${esc(concept.n)}</strong></div>
+        <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+        <div class="triage-question"><p>${esc(question)}</p></div>
+        <div class="triage-answers"><button class="triage-answer" type="button" data-triage-answer="yes">${t('triageYes')}</button>
+          <button class="triage-answer" type="button" data-triage-answer="no">${t('triageNo')}</button></div>
+        <div class="triage-nav">${index > 0 ? `<button type="button" data-triage-back>${t('triagePrevious')}</button>` : '<span></span>'}</div>`;
+    }
+    box.innerHTML = `<section class="triage">
+      <div class="triage-head"><h2>${esc(concept.n)}</h2><p>${t('triageBodySystem', SYS[concept.s].n)}</p></div>
+      ${content}
+    </section>`;
+    box.querySelectorAll('[data-triage-answer]').forEach(button => button.addEventListener('click', () => {
+      triageState.bodyResponses[triageState.bodyIndex] = button.dataset.triageAnswer === 'yes';
+      if (triageState.bodyIndex < questions.length - 1) triageState.bodyIndex++;
+      else triageState.step = 'bodyComplete';
+      renderTriagePanel();
+    }));
+    box.querySelector('[data-triage-back]')?.addEventListener('click', () => {
+      if (triageState.bodyIndex > 0) triageState.bodyIndex--;
+      renderTriagePanel();
+    });
+    box.querySelector('[data-triage-reset]')?.addEventListener('click', () => {
+      triageState = createTriageState();
+      triageState.step = 'body';
+      renderTriagePanel();
+    });
+    return;
   }
 
   const region = triageState.region && TRIAGE_PROTOCOL.regions[triageState.region];

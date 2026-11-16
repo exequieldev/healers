@@ -34906,9 +34906,13 @@ void main() {
       showAll: "Ver todo",
       hide: "Ocultar",
       dimRest: "Atenuar el resto del cuerpo",
-      triageTitle: "Evaluaci\xF3n guiada de cefalea",
-      triageIntro: "Selecciona una estructura de la cabeza en el modelo 3D para iniciar.",
-      triageHeadRequired: "La evaluaci\xF3n se habilita al seleccionar una estructura craneal o de la cabeza.",
+      triageTitle: "Evaluaci\xF3n guiada de s\xEDntomas",
+      triageIntro: "Selecciona cualquier estructura del modelo 3D para iniciar una evaluaci\xF3n.",
+      triageBodyPrompt: (part) => `\xBFPresenta alg\xFAn s\xEDntoma o molestia relacionado con ${part}?`,
+      triageBodySystem: (system) => `SISTEMA \xB7 ${system.toUpperCase()}`,
+      triageBodyPhase1: "PASO 1 \xB7 S\xCDNTOMA PRINCIPAL",
+      triageBodyPhase2: "PASO 2 \xB7 PREGUNTAS RELACIONADAS",
+      triageBodyComplete: "Evaluaci\xF3n de simulaci\xF3n completada.",
       triageLocationStep: "PASO 1 \xB7 LOCALIZACI\xD3N ANAT\xD3MICA",
       triageChooseRegion: "\xBFD\xF3nde se localiza el dolor de cabeza?",
       triageChooseRegionHint: "Seleccione la regi\xF3n craneal principal afectada para iniciar la evaluaci\xF3n guiada.",
@@ -35007,9 +35011,13 @@ void main() {
       showAll: "Show all",
       hide: "Hide",
       dimRest: "Dim the rest of the body",
-      triageTitle: "Guided headache assessment",
-      triageIntro: "Select a head structure in the 3D model to begin.",
-      triageHeadRequired: "The assessment is enabled when a skull or head structure is selected.",
+      triageTitle: "Guided symptom assessment",
+      triageIntro: "Select any structure in the 3D model to begin an assessment.",
+      triageBodyPrompt: (part) => `Are you experiencing any symptom or discomfort related to ${part}?`,
+      triageBodySystem: (system) => `SYSTEM \xB7 ${system.toUpperCase()}`,
+      triageBodyPhase1: "STEP 1 \xB7 MAIN SYMPTOM",
+      triageBodyPhase2: "STEP 2 \xB7 RELATED QUESTIONS",
+      triageBodyComplete: "Simulation assessment complete.",
       triageLocationStep: "STEP 1 \xB7 ANATOMICAL LOCATION",
       triageChooseRegion: "Where is the headache located?",
       triageChooseRegionHint: "Select the main affected cranial region to start the guided assessment.",
@@ -35041,6 +35049,162 @@ void main() {
 
   // src/triage.js
   var TRIAGE_PROTOCOL = {
+    bodyQuestions: {
+      mus: {
+        es: [
+          "\xBFSiente dolor o molestia en esa zona?",
+          "\xBFEl dolor empeora al moverla o usarla?",
+          "\xBFHa notado hinchaz\xF3n o sensibilidad al tocarla?",
+          "\xBFTuvo un golpe o lesi\xF3n reciente en esa zona?"
+        ],
+        en: [
+          "Do you feel pain or discomfort in that area?",
+          "Does the pain worsen when you move or use it?",
+          "Have you noticed swelling or tenderness when touched?",
+          "Have you had a recent impact or injury in that area?"
+        ]
+      },
+      esq: {
+        es: [
+          "\xBFSiente dolor o molestia cerca de esta estructura?",
+          "\xBFEl dolor empeora al moverse o al cargar peso?",
+          "\xBFHa notado hinchaz\xF3n o sensibilidad al tocar la zona?",
+          "\xBFTuvo una ca\xEDda, golpe o lesi\xF3n reciente?"
+        ],
+        en: [
+          "Do you feel pain or discomfort near this structure?",
+          "Does the pain worsen with movement or weight-bearing?",
+          "Have you noticed swelling or tenderness in the area?",
+          "Have you had a recent fall, impact, or injury?"
+        ]
+      },
+      teg: {
+        es: [
+          "\xBFHa notado cambios recientes en la piel de esa zona?",
+          "\xBFPresenta picaz\xF3n, enrojecimiento o irritaci\xF3n?",
+          "\xBFHay una herida, ampolla o secreci\xF3n?",
+          "\xBFLa zona est\xE1 hinchada, caliente o sensible?"
+        ],
+        en: [
+          "Have you noticed recent changes in the skin in that area?",
+          "Do you have itching, redness, or irritation?",
+          "Is there a wound, blister, or discharge?",
+          "Is the area swollen, warm, or tender?"
+        ]
+      },
+      ner: {
+        es: [
+          "\xBFHa notado debilidad o p\xE9rdida de sensibilidad recientemente?",
+          "\xBFTiene dificultad nueva para coordinar movimientos o mantener el equilibrio?",
+          "\xBFHa tenido cambios repentinos en la visi\xF3n, el habla o el estado de alerta?",
+          "\xBFPresenta dolor de cabeza intenso y de aparici\xF3n repentina?"
+        ],
+        en: [
+          "Have you recently noticed weakness or loss of sensation?",
+          "Are you having new difficulty coordinating movements or keeping your balance?",
+          "Have you had sudden changes in vision, speech, or alertness?",
+          "Are you experiencing a severe, sudden-onset headache?"
+        ]
+      },
+      car: {
+        es: [
+          "\xBFSiente presi\xF3n, dolor o molestia en el pecho?",
+          "\xBFHa notado latidos irregulares o palpitaciones?",
+          "\xBFPresenta falta de aire, incluso en reposo?",
+          "\xBFHa tenido mareos, desmayos o hinchaz\xF3n en las piernas?"
+        ],
+        en: [
+          "Do you feel pressure, pain, or discomfort in your chest?",
+          "Have you noticed an irregular heartbeat or palpitations?",
+          "Are you short of breath, even at rest?",
+          "Have you had dizziness, fainting, or leg swelling?"
+        ]
+      },
+      res: {
+        es: [
+          "\xBFLe cuesta respirar o siente falta de aire?",
+          "\xBFTiene tos nueva o persistente?",
+          "\xBFSiente silbidos o presi\xF3n en el pecho al respirar?",
+          "\xBFTiene fiebre o expulsa flema al toser?"
+        ],
+        en: [
+          "Are you having difficulty breathing or feeling short of breath?",
+          "Do you have a new or persistent cough?",
+          "Do you feel wheezing or chest tightness when breathing?",
+          "Do you have a fever or cough up mucus?"
+        ]
+      },
+      dig: {
+        es: [
+          "\xBFTiene dolor o molestia abdominal?",
+          "\xBFPresenta n\xE1useas, v\xF3mitos o dificultad para tragar?",
+          "\xBFHa notado cambios recientes en sus deposiciones?",
+          "\xBFHa observado sangre en el v\xF3mito o en las deposiciones?"
+        ],
+        en: [
+          "Do you have abdominal pain or discomfort?",
+          "Are you experiencing nausea, vomiting, or difficulty swallowing?",
+          "Have you noticed recent changes in your bowel movements?",
+          "Have you noticed blood in your vomit or bowel movements?"
+        ]
+      },
+      uri: {
+        es: [
+          "\xBFSiente dolor o ardor al orinar?",
+          "\xBFHa notado que orina con m\xE1s frecuencia o urgencia?",
+          "\xBFHa cambiado el color o el aspecto de la orina?",
+          "\xBFTiene dolor en la parte baja del abdomen o en la espalda, o fiebre?"
+        ],
+        en: [
+          "Do you feel pain or burning when urinating?",
+          "Have you noticed increased urinary frequency or urgency?",
+          "Has the color or appearance of your urine changed?",
+          "Do you have lower abdominal or back pain, or a fever?"
+        ]
+      },
+      rep: {
+        es: [
+          "\xBFSiente dolor o molestia en esta zona?",
+          "\xBFHa notado hinchaz\xF3n, bultos o cambios en la piel?",
+          "\xBFPresenta dolor o dificultad al orinar?",
+          "\xBFHa notado secreci\xF3n o alg\xFAn cambio reciente que le preocupe?"
+        ],
+        en: [
+          "Do you feel pain or discomfort in this area?",
+          "Have you noticed swelling, lumps, or skin changes?",
+          "Do you have pain or difficulty when urinating?",
+          "Have you noticed discharge or any recent change that concerns you?"
+        ]
+      },
+      end: {
+        es: [
+          "\xBFHa notado un cambio inusual en su nivel de energ\xEDa?",
+          "\xBFHa tenido cambios inexplicables de peso o de tolerancia al fr\xEDo o al calor?",
+          "\xBFTiene m\xE1s sed u orina m\xE1s de lo habitual?",
+          "\xBFHa notado cambios recientes en el ritmo de sus latidos?"
+        ],
+        en: [
+          "Have you noticed an unusual change in your energy level?",
+          "Have you had unexplained weight changes or changes in how you tolerate cold or heat?",
+          "Are you thirstier or urinating more than usual?",
+          "Have you noticed recent changes in your heartbeat?"
+        ]
+      },
+      lin: {
+        es: [
+          "\xBFHa notado ganglios o zonas hinchadas recientemente?",
+          "\xBFLa zona hinchada duele o es sensible al tocarla?",
+          "\xBFTiene fiebre o ha tenido infecciones recientes?",
+          "\xBFHa tenido sudoraci\xF3n nocturna o p\xE9rdida de peso sin propon\xE9rselo?"
+        ],
+        en: [
+          "Have you recently noticed swollen lymph nodes or areas?",
+          "Is the swollen area painful or tender to touch?",
+          "Do you have a fever or have you had recent infections?",
+          "Have you had night sweats or unintentional weight loss?"
+        ]
+      }
+    },
     regions: {
       frontal: {
         code: "ZONE-01",
@@ -35361,6 +35525,8 @@ void main() {
     positiveRedFlags: [],
     specificIndex: 0,
     specificResponses: [],
+    bodyIndex: 0,
+    bodyResponses: [],
     completedChecklist: /* @__PURE__ */ new Set(),
     selectedEmergencyStep: null
   });
@@ -36044,18 +36210,66 @@ void main() {
   function renderTriagePanel() {
     const box = $("#triage");
     if (!box) return;
-    if (!selected || !isHeadPart(selected)) {
+    if (!selected) {
       triagePartId = null;
       triageState = createTriageState();
       box.innerHTML = `<section class="triage">
       <div class="triage-head"><h2>${t("triageTitle")}</h2>
-      <p>${t(selected ? "triageHeadRequired" : "triageIntro")}</p></div>
+      <p>${t("triageIntro")}</p></div>
     </section>`;
       return;
     }
     if (triagePartId !== selected) {
       triagePartId = selected;
-      resetTriageForSelectedPart();
+      if (isHeadPart(selected)) resetTriageForSelectedPart();
+      else {
+        triageState = createTriageState();
+        triageState.step = "body";
+      }
+    }
+    if (!isHeadPart(selected)) {
+      const part = PARTS[selected], concept = CONC[part.p.c];
+      const systemQuestions = triageTexts(TRIAGE_PROTOCOL.bodyQuestions[concept.s]);
+      const questions = [t("triageBodyPrompt", concept.n), ...systemQuestions];
+      const isComplete = triageState.step === "bodyComplete";
+      let content2;
+      if (isComplete) {
+        content2 = `<div class="triage-done"><span class="triage-step">${t("triageBodySystem", SYS[concept.s].n)}</span>
+          <h2>${t("triageCompleteHeading")}</h2><p>${t("triageBodyComplete")}</p></div>
+        <ul class="triage-summary">${questions.map((question, index) => `<li><strong>${esc(question)}</strong><br>${triageState.bodyResponses[index] ? t("triageResponseYes") : t("triageResponseNo")}</li>`).join("")}</ul>
+        <button class="triage-action" type="button" data-triage-reset>${t("triageNewEvaluation")}</button>`;
+      } else {
+        const index = triageState.bodyIndex;
+        const question = questions[index];
+        const percent = Math.round((index + 1) / questions.length * 100);
+        content2 = `<div class="triage-head"><span class="triage-step">${t(index === 0 ? "triageBodyPhase1" : "triageBodyPhase2")}</span></div>
+        <div class="triage-count"><span>${t("triageQuestionLabel", index + 1, questions.length)}</span><strong>${esc(concept.n)}</strong></div>
+        <div class="triage-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+        <div class="triage-question"><p>${esc(question)}</p></div>
+        <div class="triage-answers"><button class="triage-answer" type="button" data-triage-answer="yes">${t("triageYes")}</button>
+          <button class="triage-answer" type="button" data-triage-answer="no">${t("triageNo")}</button></div>
+        <div class="triage-nav">${index > 0 ? `<button type="button" data-triage-back>${t("triagePrevious")}</button>` : "<span></span>"}</div>`;
+      }
+      box.innerHTML = `<section class="triage">
+      <div class="triage-head"><h2>${esc(concept.n)}</h2><p>${t("triageBodySystem", SYS[concept.s].n)}</p></div>
+      ${content2}
+    </section>`;
+      box.querySelectorAll("[data-triage-answer]").forEach((button) => button.addEventListener("click", () => {
+        triageState.bodyResponses[triageState.bodyIndex] = button.dataset.triageAnswer === "yes";
+        if (triageState.bodyIndex < questions.length - 1) triageState.bodyIndex++;
+        else triageState.step = "bodyComplete";
+        renderTriagePanel();
+      }));
+      box.querySelector("[data-triage-back]")?.addEventListener("click", () => {
+        if (triageState.bodyIndex > 0) triageState.bodyIndex--;
+        renderTriagePanel();
+      });
+      box.querySelector("[data-triage-reset]")?.addEventListener("click", () => {
+        triageState = createTriageState();
+        triageState.step = "body";
+        renderTriagePanel();
+      });
+      return;
     }
     const region = triageState.region && TRIAGE_PROTOCOL.regions[triageState.region];
     let content = "";
